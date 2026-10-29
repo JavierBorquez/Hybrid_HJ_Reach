@@ -57,5 +57,10 @@ if __name__ == "__main__":
     result = solve(problem, times, save_indices=(0, len(times)-1),
                    memory_budget_bytes=int(args.memory_gib*1024**3))
     result.metadata.update(case=args.case, preset=args.preset)
-    result.save(args.output/f"{args.case}_{args.preset}")
-    print(result.metadata)
+    folder = args.output/f"{args.case}_{args.preset}"
+    result.save(folder)
+    print(f"{args.case} ({args.preset}): {result.metadata['backend']}, "
+          f"grid={tuple(problem.grid.shape)}, horizon={horizon:g} s")
+    print(f"compile={result.metadata['compile_seconds']:.2f} s, "
+          f"solve={result.metadata['execution_seconds']:.3f} s")
+    print(f"Saved values to {folder} (value-only run; no trajectory or figure)")

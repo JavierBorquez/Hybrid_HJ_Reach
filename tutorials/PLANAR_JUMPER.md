@@ -1,9 +1,16 @@
 # Continue with the planar jumper
 
+[Home](../README.md) · [First tutorial](README.md) · [Paper commands and expected outputs](../examples/papers/README.md)
+
 The [vertical tutorial](README.md) introduces modes, sets and HLRF decisions.
 Here the state becomes `(x,z,vx,vz)` and failure includes two pillars plus the
 floor. The same solver and filter are used; the physical adapter supplies event
 surfaces, ODE flow and conditional clearance checks.
+
+This page explains the Python API behind the full planar example. To run the
+ready-made experiment first, follow the [paper guide](../examples/papers/README.md#2-run-the-complete-jumper-demo).
+The code below uses a moderate four-dimensional grid and benefits from a GPU.
+Keep float64 enabled with `JAX_ENABLE_X64=true` when running it.
 
 ## 1. Build the physical model once
 

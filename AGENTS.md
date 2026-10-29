@@ -7,6 +7,9 @@ Prioritize correct hybrid dynamics and HJVI semantics over MATLAB agreement.
 ## Read first
 
 - `README.md`: setup and entry points.
+- `docs/OVERVIEW.md`, `tutorials/README.md`, `examples/papers/README.md`: reader
+  paths from concepts to a first run and paper experiments. Keep their commands,
+  expected outputs and reproduction-status claims aligned with the actual code.
 - `docs/API.md`: signs, reset priority, coordinates and supported features.
 - `CHANGELOG.md`: stable PUB decision IDs and intentional source differences.
 - `docs/VALIDATION.md`: measured evidence and unresolved numerical limitations.

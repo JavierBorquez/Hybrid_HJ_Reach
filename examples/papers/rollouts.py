@@ -89,6 +89,7 @@ def main():
             print(key, reports[key]['status'], f"t={tr['final_time']:.3f}, clearance bound={bound:.5g}", flush=True)
     (folder/'rollouts.json').write_text(json.dumps(reports, indent=2, allow_nan=False)+'\n')
     plot_run(scenario, result, trajectories, folder)
+    print(f"Saved reports and figures to {folder}; open trajectories.png first.", flush=True)
 
 
 if __name__ == '__main__':

@@ -1,5 +1,10 @@
 # API and numerical semantics
 
+[Home](../README.md) · [Conceptual overview](OVERVIEW.md) · [First tutorial](../tutorials/README.md)
+
+This is the detailed reference for the public API. Start with the overview and
+tutorial for a guided introduction.
+
 ## System and problem
 
 `HybridModel(modes, stages)` groups named `Mode` dynamics and ordered

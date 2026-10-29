@@ -33,10 +33,10 @@ def run(kind, output, points=81, horizon=.8):
         goal=None if kind == "avoid" else lambda x, q: float(goal(x, q)))
     np.savez(folder/"trajectory.npz", **{k: v for k, v in trajectory.items()
                                        if isinstance(v, np.ndarray)})
-    summary = dict(status=trajectory["status"], final_time=trajectory["final_time"],
+    summary = dict(result.metadata, status=trajectory["status"],
+        solver_status=result.metadata.get("status"), final_time=trajectory["final_time"],
         final_state=trajectory["final_state"].tolist(), resets=trajectory["resets"],
-        continuous_interventions=int(trajectory["continuous_intervention"].sum()),
-        **result.metadata)
+        continuous_interventions=int(trajectory["continuous_intervention"].sum()))
     (folder/"summary.json").write_text(json.dumps(summary, indent=2)+"\n")
     fig, axes = plt.subplots(1, 3, figsize=(12, 3.5))
     for q, ax in enumerate(axes[:2]):
@@ -56,6 +56,7 @@ def run(kind, output, points=81, horizon=.8):
     print(f"{kind}: {trajectory['status']} at {trajectory['final_time']:.3f} s; "
           f"{result.metadata['backend']}, compile={result.metadata['compile_seconds']:.2f} s, "
           f"solve={result.metadata['execution_seconds']:.3f} s", flush=True)
+    print(f"  Figure: {folder/'values_and_rollout.png'}", flush=True)
 
 
 if __name__ == "__main__":

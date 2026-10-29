@@ -1,96 +1,109 @@
 # Hybrid reachability with JAX
 
-Development staging area for a curated public source export. This directory is
-self-contained: it does not read the private research repository, MATLAB,
-paper PDFs, archived arrays or comparison fixtures. Development stays private;
-public snapshots are produced with `tools/curate.py`.
+Compute which states of a hybrid system can reach a goal, avoid failure, or do
+both. A hybrid system combines continuous motion with discrete mode changes:
+a jumping robot switches between stance and flight; a spacecraft switches
+between idle, thrust and cooldown.
 
-The package computes autonomous hybrid **reach**, **avoid** and **reach-avoid**
-value functions using `hj_reachability`. It also supplies an **avoid-only hybrid
-least-restrictive filter (HLRF)**. Reach/reach-avoid examples use goal-seeking
-feedback; no reach/reach-avoid LRF is advertised.
+This Python package solves Hamilton–Jacobi reachability problems on CPU or GPU
+using `hj_reachability` and JAX. It includes feedback controllers, an avoid-only
+hybrid least-restrictive safety filter, and examples from the RSS and IJRR
+hybrid reachability studies.
 
-## Start here
+![Vertical-jumper reach-avoid example: value fields in stance and flight, and the resulting height trajectory](docs/images/vertical_jumper.png)
 
-Use a separate environment when installing this package: it deliberately has
-the same import name as the private research implementation.
+The [first tutorial](tutorials/README.md) generates this CPU example: the robot
+reaches the green height band while avoiding the floor and ceiling.
+
+| What would you like to do? | Start here |
+|---|---|
+| Understand the method and the results | [How hybrid reachability works](docs/OVERVIEW.md) |
+| Run a small example and learn the API | [Vertical-jumper tutorial](tutorials/README.md) |
+| Run the paper examples | [Paper experiments and reproduction status](examples/papers/README.md) |
+| Define your own system | [Tutorial model walkthrough](tutorials/README.md#3-define-the-hybrid-system), then [API reference](docs/API.md) |
+
+## Install and run your first example
+
+Use Python 3.10 or newer. From the repository root, create an environment and
+install the package with its plotting and test dependencies:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e '.[examples,test]'
 JAX_PLATFORMS=cpu JAX_ENABLE_X64=true python tutorials/jumper.py
-python -m pytest -q
 ```
 
-The small vertical jumper works on CPU. An already GPU-enabled JAX installation
-can run the identical API with:
+This runs a small vertical jumper with three objectives: reach a height band,
+stay away from the floor and ceiling, and reach the band while avoiding both.
+It solves each problem, saves the value function, simulates a trajectory, and
+writes a figure. A GPU is optional for this example.
+
+Open `outputs/jumper/reach_avoid/values_and_rollout.png` first. The first two
+panels show the value function in stance and flight; the third shows height
+over time. The [tutorial](tutorials/README.md) explains how to read them and
+walks through the code. Each objective also writes `summary.json` and
+`trajectory.npz` beside the figure. Choose a new `--output` directory for reruns:
 
 ```bash
-JAX_PLATFORMS=cuda,cpu JAX_ENABLE_X64=true XLA_PYTHON_CLIENT_PREALLOCATE=false \
-  python tutorials/jumper.py --output outputs/jumper_gpu
+JAX_PLATFORMS=cpu JAX_ENABLE_X64=true \
+  python tutorials/jumper.py --output outputs/jumper_second_run
 ```
 
-The package does not change process-wide JAX precision/device settings. The
-validated development environment uses Python 3.10, JAX/JAXlib 0.6.2 and
-hj_reachability 0.7.0. GPU setup depends on the local JAX installation.
+See [setup and troubleshooting](docs/SETUP.md) for GPU use, environment checks
+and common errors.
 
-- [Step-by-step jumper tutorial](tutorials/README.md)
-- [Public API, mathematical conventions and current limits](docs/API.md)
-- [Paper example recipes](examples/papers/README.md)
-- [Planar-jumper tutorial continuation](tutorials/PLANAR_JUMPER.md)
-- [Intentional changes from the research implementation](CHANGELOG.md)
-- [Validation performed on this preparation](docs/VALIDATION.md)
-- [Agent development guide](AGENTS.md)
+## From a model to a controller
 
-## One pipeline
+Define the dynamics in each mode, the guards and reset maps between modes, and
+the goal/failure sets. The same pipeline handles all three objectives:
 
 ```python
-from hybrid_reach import Problem, solve, AvoidFilter
-from hybrid_reach.examples.vertical_jumper import make_system, failure
 import numpy as np
+from hybrid_reach import Problem, solve
+from hybrid_reach.examples.vertical_jumper import make_system, goal, failure
 
 model, grid, events = make_system()
-problem = Problem.avoid(model, grid, failure)
-result = solve(problem, np.linspace(0., .8, 81), save_indices=(0, 40, 80))
-result.save('outputs/my_jumper')
-hlrf = AvoidFilter(problem, result, margin=.03)
-decision = hlrf([.3, 0.], 0, .8, nominal_control=lambda x, q: np.zeros(1))
+problem = Problem.reach_avoid(model, grid, goal, failure)
+result = solve(problem, np.linspace(0., .8, 81))
 ```
 
-Define dynamics, guards, resets and sets in your model module. The shared solver
-contains no model-specific value mapping. All input set functions are negative
-inside. Avoid results are positive-safe; reach/reach-avoid results are
-negative-winning. HLRF margins are numerical intervention buffers.
+The result contains one value field per mode and saved horizon. Feedback uses
+its spatial gradient to choose controls; the simulator locates mode changes
+and applies resets. Follow the [tutorial](tutorials/README.md) to save, reload
+and simulate this result.
 
-## Public exports and private evidence
+## Paper examples
+
+The [paper guide](examples/papers/README.md) maps every example to its command,
+model and available outputs. The planar-jumper and spacecraft cases have a
+complete solve → simulate → plot → independently replay workflow. For example,
+after installation:
 
 ```bash
-python tools/curate.py /path/to/a/new/public-snapshot
+JAX_PLATFORMS=cpu JAX_ENABLE_X64=true \
+  python examples/papers/rollouts.py jump_reach_avoid --preset smoke
 ```
 
-This copies an allowlist of source, tests and documentation and writes file
-hashes. It excludes generated output, large arrays, PDFs, MATLAB, environment
-directories and Git history. No repository is published by this command.
-Choose an explicit license and complete the remaining model/policy curation
-before a public release; neither is implied by this development snapshot.
+This short run checks the workflow. Use the guide's `demo` recipe for the full
+goal-reaching trajectory; the short `smoke` horizon need not reach the goal.
+Dog1D, aircraft and the RSS platform jumper currently have value-function solve
+recipes. Their complete rollout/figure workflows remain unfinished.
 
-The original fine-grid results, failures, refinement studies and detailed logs
-stay in the private repository. Small numerical tests ship with the public code.
-Successful smoke runs are not convergence or safety certificates.
+The public examples implement the paper models with documented numerical and
+modeling choices. Exact paper-figure reproduction is still incomplete, and
+the larger `reference` presets have not all been validated. See the guide's
+[reproduction status](examples/papers/README.md#what-is-reproduced) before
+starting a large run.
 
-The IJRR planar jumper and satellite also have complete solve/reload/rollout/plot
-commands, using the same core pipeline:
+## Further reading
 
-```bash
-JAX_ENABLE_X64=true XLA_PYTHON_CLIENT_PREALLOCATE=false \
-  python examples/papers/rollouts.py jump_reach_avoid
-python examples/papers/validate.py jump_reach_avoid
-```
+- [API reference](docs/API.md): signatures, signs, reset ordering and supported features.
+- [Planar-jumper walkthrough](tutorials/PLANAR_JUMPER.md): extend the tutorial to a four-dimensional model.
+- [Validation results](docs/VALIDATION.md): measured runtimes, trajectory outcomes and numerical limits.
+- [Development guide](docs/DEVELOPMENT.md): tests, source layout and source exports.
+- [Change log](CHANGELOG.md): recorded modeling and numerical decisions.
 
-Use `jump_avoid`, `satellite_avoid` or `satellite_reach_avoid` for the other
-cases. These default demo grids are substantially larger than the vertical
-tutorial and benefit from a GPU. `--preset smoke` selects short small-grid runs.
-Large histories are streamed to disk with `solve_streamed`, while online policy
-queries and physical simulation use CPU. See the paper README for memory,
-finite-horizon and validation details.
+This is a development version. A repository license still needs to be selected
+before public release. The examples and tests run without MATLAB or saved
+reference data.

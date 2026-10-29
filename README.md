@@ -10,17 +10,18 @@ using `hj_reachability` and JAX. It includes feedback controllers, an avoid-only
 hybrid least-restrictive safety filter, and examples from the RSS and IJRR
 hybrid reachability studies.
 
-![Vertical-jumper reach-avoid example: value fields in stance and flight, and the resulting height trajectory](docs/images/vertical_jumper.png)
+![Falling-piece reach-avoid policy: steer before the drop to reach the clear part of the target](docs/images/falling_piece_reach_avoid_policy.gif)
 
-The [first tutorial](tutorials/README.md) generates this CPU example: the robot
-reaches the green height band while avoiding the floor and ceiling.
+The [first tutorial](tutorials/README.md) asks you to steer a falling piece
+into the right column before steering disappears. It generates BRT plots and
+policy GIFs for reach, avoid and reach-avoid on CPU.
 
 | What would you like to do? | Start here |
 |---|---|
 | Understand the method and the results | [How hybrid reachability works](docs/OVERVIEW.md) |
-| Run a small example and learn the API | [Vertical-jumper tutorial](tutorials/README.md) |
+| Run a small example and learn the API | [Falling-piece tutorial](tutorials/README.md) |
 | Run the paper examples | [Paper experiments and reproduction status](examples/papers/README.md) |
-| Define your own system | [Tutorial model walkthrough](tutorials/README.md#3-define-the-hybrid-system), then [API reference](docs/API.md) |
+| Define your own system | [Tutorial model walkthrough](tutorials/README.md#2-code-the-continuous-dynamics), then [API reference](docs/API.md) |
 
 ## Install and run your first example
 
@@ -31,23 +32,24 @@ install the package with its plotting and test dependencies:
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e '.[examples,test]'
-JAX_PLATFORMS=cpu JAX_ENABLE_X64=true python tutorials/jumper.py
+JAX_PLATFORMS=cpu JAX_ENABLE_X64=true python tutorials/falling_piece.py
 ```
 
-This runs a small vertical jumper with three objectives: reach a height band,
-stay away from the floor and ceiling, and reach the band while avoiding both.
-It solves each problem, saves the value function, simulates a trajectory, and
-writes a figure. A GPU is optional for this example.
+This runs the same two-dimensional falling-piece model with three objectives:
+reach a target, avoid obstacles, and reach the target while avoiding obstacles.
+It solves each problem, simulates several initial conditions, and writes a BRT
+plot and a policy GIF. Avoid also compares an arbitrary nominal policy with its
+safety-filtered version. A GPU is optional.
 
-Open `outputs/jumper/reach_avoid/values_and_rollout.png` first. The first two
-panels show the value function in stance and flight; the third shows height
-over time. The [tutorial](tutorials/README.md) explains how to read them and
-walks through the code. Each objective also writes `summary.json` and
-`trajectory.npz` beside the figure. Choose a new `--output` directory for reruns:
+Open `outputs/falling_piece/reach/brt.png` and `policy.gif` first. The
+[tutorial](tutorials/README.md) introduces the intuition before showing how to
+code the dynamics, boundaries, optimizer, sets and feedback. Each task also
+writes `summary.json`, numerical trajectories and a reloadable `value/` directory.
+Choose a new `--output` directory for reruns:
 
 ```bash
 JAX_PLATFORMS=cpu JAX_ENABLE_X64=true \
-  python tutorials/jumper.py --output outputs/jumper_second_run
+  python tutorials/falling_piece.py --output outputs/falling_piece_second_run
 ```
 
 See [setup and troubleshooting](docs/SETUP.md) for GPU use, environment checks
@@ -61,11 +63,11 @@ the goal/failure sets. The same pipeline handles all three objectives:
 ```python
 import numpy as np
 from hybrid_reach import Problem, solve
-from hybrid_reach.examples.vertical_jumper import make_system, goal, failure
+from hybrid_reach.examples.falling_piece import make_system, goal, failure
 
 model, grid, events = make_system()
 problem = Problem.reach_avoid(model, grid, goal, failure)
-result = solve(problem, np.linspace(0., .8, 81))
+result = solve(problem, np.linspace(0., 4., 401))
 ```
 
 The result contains one value field per mode and saved horizon. Feedback uses
@@ -99,7 +101,7 @@ starting a large run.
 ## Further reading
 
 - [API reference](docs/API.md): signatures, signs, reset ordering and supported features.
-- [Planar-jumper walkthrough](tutorials/PLANAR_JUMPER.md): extend the tutorial to a four-dimensional model.
+- [Vertical jumper](tutorials/VERTICAL_JUMPER.md) and [planar jumper](tutorials/PLANAR_JUMPER.md): additional models after the first tutorial.
 - [Validation results](docs/VALIDATION.md): measured runtimes, trajectory outcomes and numerical limits.
 - [Development guide](docs/DEVELOPMENT.md): tests, source layout and source exports.
 - [Change log](CHANGELOG.md): recorded modeling and numerical decisions.

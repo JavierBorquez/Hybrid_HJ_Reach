@@ -10,10 +10,10 @@ Run these commands from the repository root with Python 3.10 or newer:
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e '.[examples,test]'
-JAX_PLATFORMS=cpu JAX_ENABLE_X64=true python tutorials/jumper.py
+JAX_PLATFORMS=cpu JAX_ENABLE_X64=true python tutorials/falling_piece.py
 ```
 
-`examples` installs Matplotlib for figures; `test` installs pytest. The package
+`examples` installs Matplotlib and Pillow for figures/GIFs; `test` installs pytest. The package
 uses JAX through `hj_reachability`. The recorded validation environment was
 Python 3.10, JAX/JAXlib 0.6.2 and `hj_reachability` 0.7.0; the declared dependency
 ranges also permit other versions, which have not all been validated.
@@ -36,7 +36,7 @@ Then run the same tutorial on CUDA:
 
 ```bash
 JAX_PLATFORMS=cuda JAX_ENABLE_X64=true XLA_PYTHON_CLIENT_PREALLOCATE=false \
-  python tutorials/jumper.py --output outputs/jumper_gpu
+  python tutorials/falling_piece.py --output outputs/falling_piece_gpu
 ```
 
 Using `JAX_PLATFORMS=cuda` makes a missing CUDA backend an error. For a deliberate
@@ -69,7 +69,7 @@ run from `public_export` and explicitly select this source tree:
 ```bash
 PYTHONPATH="$PWD/src" ../.venv/bin/python -c "import hybrid_reach; print(hybrid_reach.__file__)"
 PYTHONPATH="$PWD/src" JAX_PLATFORMS=cpu JAX_ENABLE_X64=true \
-  ../.venv/bin/python tutorials/jumper.py --output outputs/jumper_local
+  ../.venv/bin/python tutorials/falling_piece.py --output outputs/falling_piece_local
 ```
 
 Retain the same `PYTHONPATH` prefix for subsequent commands using that interpreter.

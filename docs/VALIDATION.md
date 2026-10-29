@@ -74,3 +74,29 @@ as a private diagnostic prefix. The corrected run reuses the same value history;
 only already-located event roots within eight float64 epsilons are normalized,
 with each nonzero correction logged. No physical trajectory/predicted state is
 clipped to rescue an out-of-domain rollout.
+
+## Falling-piece tutorial, 2026-10-29
+
+The CPU suite passes **52 tests**, including ten new falling-piece/terminal-event
+cases. The new model's Hamiltonian controls are checked against input-box
+corners. Reach probes agree with independent steering-window and descent-time
+conditions; reach-avoid excludes a reachable column blocked above the goal.
+Exact fall times validate the forced switches and absorbing rest mode. A
+straight segment with safe endpoints but an interior collision checks the
+independent obstacle audit.
+
+The full 101×141, T=4 s CPU lesson generates all three BRT plots and four policy
+GIFs. Reach and reach-avoid starts A/B arrive at 2.26/2.66 s; their too-late start
+C misses and comes to rest. Avoid safety starts A/B complete the 4 s horizon;
+the too-late start collides at 0.33 s. From the shared filter-comparison start,
+nominal rightward drift collides at 2.79 s, while the filtered trajectory finishes
+in rest without collision. Each run retains its status and independent
+straight-line replay/whole-segment failure-field audit in `summary.json`.
+
+The first diagnostic runs exposed guard-membership roundoff at sampled height
+boundaries, terminal goal roots incorrectly treated as unresolved contacts, and
+empty event-list handling in rest. The diagnostic outputs are retained privately.
+The model's declared 1e-10 guard slack never changes a state; terminal-event
+handling now retains located roots without clipping or artificial time advance.
+See PUB-22–24 for code locations and export changes. These are CPU finite-grid
+examples; no new GPU, paper-reference or convergence result is inferred.

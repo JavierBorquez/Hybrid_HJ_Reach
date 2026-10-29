@@ -1,210 +1,221 @@
-# Tutorial: a jumping robot in two modes
+# Tutorial: steer a falling piece before the drop
 
-[Home](../README.md) · [Concepts](../docs/OVERVIEW.md) · [Paper examples](../examples/papers/README.md)
+[Home](../README.md) · **1. Model** → [2. Reach](REACH.md) → [3. Avoid and filter](AVOID.md) → [4. Reach-avoid](REACH_AVOID.md)
 
-In this tutorial you will compute where a small robot can jump, use the result
-to control it, and inspect its trajectory. The robot moves only vertically, so
-its value function fits in a two-dimensional plot. This is a teaching model;
-the paper's planar jumper comes later.
+**Can you move a falling piece into the right column before you lose steering?**
 
-You need the package installed with the `examples` extra. Follow the
-[setup instructions](../docs/SETUP.md) first, then run all commands below from
-the repository root.
+Imagine a simple falling-block game. High up, you can move sideways. After
+crossing a line, the piece drops quickly in its chosen column. At the bottom it
+stops. Reaching a target or missing an obstacle therefore depends on a decision
+you must make *before* the drop.
 
-## 1. Run the complete example
+The piece is a point at position `(x,y)`. Square markers in the animations only
+show that point; they do not add a block footprint or rotation.
+
+This lesson first builds the shared model. The next pages use it to reach a
+target, avoid obstacles, and combine both. Each page explains the expected
+behavior, shows the code, then runs the example and interprets its BRT and GIF.
+
+## 1. Understand the three bands
+
+![Three bands: steer slowly above y=4, drop quickly down to y=1, then rest; green target and red obstacles](../docs/images/falling_piece_setup.png)
+
+The state is position, not velocity. Your input directly sets horizontal speed
+while steering is available. Vertical speed depends on the mode:
+
+| Mode | Physical band | Motion | Input |
+|---|---|---|---|
+| `0`, steer | `y > 4` | `xdot = u`, `ydot = -1` | `-1 <= u <= 1` |
+| `1`, drop | `1 < y <= 4` | `xdot = 0`, `ydot = -5` | `u = 0` |
+| `2`, rest | `y <= 1` | `xdot = 0`, `ydot = 0` | `u = 0` |
+
+There is no jumping, acceleration control or choice to delay the fall. At
+`y=4` you lose steering; at `y=1` you stop. Position stays continuous at both
+switches. This is a **hybrid system** because the continuous motion changes
+when the discrete mode changes.
+
+```mermaid
+flowchart LR
+    A[Steer: xdot=u, ydot=-1] -->|Cross y=4 downward| B[Drop: xdot=0, ydot=-5]
+    B -->|Cross y=1 downward| C[Rest: no motion]
+```
+
+The complete runnable model is
+[`src/hybrid_reach/examples/falling_piece.py`](../src/hybrid_reach/examples/falling_piece.py).
+The snippets below explain its parts. You can read them before installing
+anything; [setup](../docs/SETUP.md) is needed when you reach the run commands.
+
+## 2. Code the continuous dynamics
+
+Think of the dynamics as answering: **“Given my mode and input, how fast does
+each coordinate change right now?”** The solver needs this vector field for
+every admissible input, not just for one controller.
+
+We subclass `hj_reachability.Dynamics`. Its control space describes the inputs
+available in each mode. The disturbance space is empty because this example
+has no adversary. This is the beginning of `FallingDynamics`:
+
+```python
+import hj_reachability as hj
+import jax.numpy as jnp
+from hybrid_reach.examples.falling_piece import Parameters, STEER, DROP, REST
+
+class FallingDynamics(hj.Dynamics):
+    def __init__(self, mode, parameters=Parameters()):
+        self.mode, self.p = mode, parameters
+        self.horizontal_speed = parameters.u_max if mode == STEER else 0.
+        self.fall_speed = (parameters.slow_speed, parameters.fast_speed, 0.)[mode]
+        control_space = hj.sets.Box(jnp.array([-self.horizontal_speed]),
+                                    jnp.array([self.horizontal_speed]))
+        disturbance_space = hj.sets.Box(jnp.zeros(0), jnp.zeros(0))
+        super().__init__("min", "max", control_space, disturbance_space)
+
+    def __call__(self, state, control, disturbance, time):
+        vx = control[0] if self.mode == STEER else 0.
+        return jnp.array([vx, -self.fall_speed])
+```
+
+`state` is `[x,y]` and `control` is a one-element array `[u]`. The returned array
+is `[xdot,ydot]`. Both inactive modes have the input box `[0,0]`, so a controller
+cannot accidentally steer after the switch.
+
+Two methods complete this class. Add the next methods inside the same class,
+or use the complete model file linked above.
+
+## 3. Tell the solver how to choose an optimal input
+
+A value field assigns a score to each possible state. Its horizontal derivative
+`Vx` tells us how moving right changes that score. For goal seeking we minimize
+the score; for avoidance we maximize safety.
+
+In the steering band, the Hamiltonian is `H = Vx*u - Vy`. Only `Vx*u` depends
+on the input. To minimize it, move left when `Vx>0` and right when `Vx<0`.
+To maximize it, reverse those choices. At `Vx=0`, zero is an admissible optimal
+choice. In the other bands the only input is zero.
+
+That reasoning becomes this method inside `FallingDynamics`:
+
+```python
+    def optimal_control_and_disturbance(self, state, time, grad_value):
+        direction = -1. if self.control_mode == "min" else 1.
+        control = direction*self.horizontal_speed*jnp.sign(grad_value[0])
+        return jnp.array([control]), jnp.zeros(0)
+```
+
+The `Problem` constructor sets `self.control_mode`: `min` for reach/reach-avoid,
+`max` for avoid. We implement both directions here so the same dynamics class
+works for all tasks. This method is also what the online feedback calls once
+it has estimated a gradient from the saved field.
+
+The numerical solver must also know **how fast information can move across
+the grid**. Bound the absolute speeds over every admissible input. Those bounds
+are `(1,1)` in steer, `(0,5)` in drop, and `(0,0)` in rest:
+
+```python
+    def partial_max_magnitudes(self, state, time, value, grad_value_box):
+        return jnp.array([self.horizontal_speed, self.fall_speed])
+```
+
+These bounds determine dissipation and stable internal time steps. They are
+not the velocity under a nominal policy.
+
+## 4. Code the switching boundaries and resets
+
+The two height lines answer a different question from the vector field:
+**“When must I change mode?”** At a switch, the position is unchanged, but its
+future motion changes immediately.
+
+A Boolean **guard** marks eligible states. A **reset** maps the continuous
+state across the switch. Identity resets express continuity of position:
+
+```python
+from hybrid_reach import HybridModel, Mode, ProjectionStage, Transition, GuardEvent
+from hybrid_reach.examples.falling_piece import MODE_NAMES
+
+p = Parameters()
+identity = lambda states: states
+steer_to_drop = Transition(STEER, DROP,
+    lambda states: states[..., 1] <= p.y_high+p.guard_tolerance,
+    identity, name="lose_steering")
+drop_to_rest = Transition(DROP, REST,
+    lambda states: states[..., 1] <= p.y_low+p.guard_tolerance,
+    identity, name="come_to_rest")
+
+modes = tuple(Mode(name, FallingDynamics(q, p))
+              for q, name in enumerate(MODE_NAMES))
+model = HybridModel(modes, (
+    ProjectionStage("forced", (drop_to_rest,)),
+    ProjectionStage("forced", (steer_to_drop,)),
+))
+```
+
+`forced` means staying is unavailable when the guard is active. For backward
+value propagation, we first make the drop field read rest values, then make the
+steer field read drop values. Physical forward paths follow the reverse order:
+steer → drop → rest. The [API reference](../docs/API.md) explains composition for
+more elaborate models.
+
+The explicit `guard_tolerance=1e-10` accepts tiny height roundoff near a feedback
+endpoint. It affects guard membership, never clips or moves a state. Exact
+switch timing is checked against the analytic fall times.
+
+During a forward simulation, checking the guard only at feedback samples could
+miss the instant of crossing. Supply a signed height function so the integrator
+can locate the crossing between samples:
+
+```python
+events = (
+    GuardEvent("lose_steering", lambda state: state[1]-p.y_high, (STEER,), -1),
+    GuardEvent("come_to_rest", lambda state: state[1]-p.y_low, (DROP,), -1),
+)
+```
+
+`-1` means a downward crossing. After each event the controller applies the
+required transition and queries control in the new mode.
+
+## 5. Code the grid boundaries
+
+We now choose where to represent the value fields: `x` from -3 to 3 and `y`
+from 0 to 7. These are the **numerical domain edges**, separate from the mode
+boundaries at heights 4 and 1.
+
+```python
+grid = hj.Grid.from_lattice_parameters_and_boundary_conditions(
+    hj.sets.Box(jnp.array([-3., 0.]), jnp.array([3., 7.])),
+    (101, 141),
+)
+```
+
+The factory uses nonperiodic `extrapolate_away_from_zero` boundary conditions
+by default. These provide numerical ghost values outside the grid; they do not
+create a physical wall. We will explicitly encode side walls in the failure
+set for avoid/reach-avoid. The rest band is safe, so the bottom is not a failure
+surface. Simulation reports an actual domain exit rather than clipping it.
+
+The grid axes are `(x,y)`. Mode is a separate value-array axis. All three modes
+use this shared grid internally; plots show each field only in its physical band.
+
+## 6. Continue with the tasks
+
+You now have dynamics, an optimizer, forced transitions, event surfaces and a
+grid. [`make_system()`](../src/hybrid_reach/examples/falling_piece.py) assembles
+them for the runnable lesson. Next we add the goal and failure geometry:
+
+1. [Reach](REACH.md): align with a small target, compute its BRT, then follow the gradient policy.
+2. [Avoid](AVOID.md): choose a clear column, then protect an arbitrary nominal policy with the safety filter.
+3. [Reach-avoid](REACH_AVOID.md): reach a target whose columns are partly blocked above it.
+
+To generate every result after [installation](../docs/SETUP.md):
 
 ```bash
-JAX_PLATFORMS=cpu JAX_ENABLE_X64=true python tutorials/jumper.py
+JAX_PLATFORMS=cpu JAX_ENABLE_X64=true python tutorials/falling_piece.py
 ```
 
-The script solves three versions of the task and prints a status for each:
+Open `outputs/falling_piece/setup.png` and each task's `brt.png` and
+`policy.gif`. Avoid also writes `filter.gif`. Use a fresh `--output` directory
+for reruns. This CPU example uses a 4 s horizon; any point starting in the top
+band reaches rest within 3.6 s if it does not terminate sooner.
 
-| Folder under `outputs/jumper/` | Task | Expected outcome in the recorded CPU run |
-|---|---|---|
-| `reach/` | Reach the 1.0–1.2 m height band | `goal_reached` |
-| `avoid/` | Avoid the floor and 2.8 m ceiling for 0.8 s | `deadline`: the full interval completed |
-| `reach_avoid/` | Reach the band while avoiding floor and ceiling | `goal_reached` |
-
-Open `outputs/jumper/reach_avoid/values_and_rollout.png`. Each folder contains:
-
-| File | What to use it for |
-|---|---|
-| `values_and_rollout.png` | Inspect the value fields and height trajectory |
-| `summary.json` | Read the termination status, resets, backend and timings |
-| `trajectory.npz` | Load sampled states, controls and intervention flags |
-| `values.npy`, `axes.npz`, `metadata.json` | Reload the numerical reachability result |
-
-The first invocation includes JAX compilation. The printed compilation and solve
-times are separate. Reruns need a new output path because existing results are
-protected:
-
-```bash
-JAX_PLATFORMS=cpu JAX_ENABLE_X64=true \
-  python tutorials/jumper.py --output outputs/jumper_rerun
-```
-
-To run only one objective, add `--kind reach_avoid`.
-
-## 2. Read the figure
-
-![CPU reach-avoid result: stance and flight value fields with a height trajectory](../docs/images/vertical_jumper.png)
-
-This preview was generated with the tutorial's default grid and horizon on CPU.
-
-The first two panels show `V(height, velocity, mode, T=0.8)` for stance and
-flight. The black line, where present, is the zero contour. For reach and
-reach-avoid, the nonpositive side is the computed winning region. For avoid,
-the positive side is the computed safe region. Use the colorbar to identify
-the sign; the interpretation changes with the objective.
-
-The third panel shows the simulated height over time. The green band is the
-height goal. A reach/reach-avoid trajectory stops on entering it. The avoid
-trajectory continues until the horizon unless a failure occurs.
-
-These panels answer different questions: the fields describe many possible
-initial states; the trajectory shows feedback from one chosen initial state.
-A successful trajectory alone does not establish accuracy of the entire field.
-
-## 3. Define the hybrid system
-
-The model lives in
-[`vertical_jumper.py`](../src/hybrid_reach/examples/vertical_jumper.py).
-Its state is `x=(z,vz)`, with height in metres and velocity in metres per second.
-
-| Mode | Control | Continuous motion |
-|---|---|---|
-| `0`: stance | Upward force from 0 to 30 N | `dz/dt = vz`, `dvz/dt = force/mass - gravity` |
-| `1`: flight | Zero force | `dz/dt = vz`, `dvz/dt = -gravity` |
-
-The robot has mass 1 kg. At leg height 0.5 m, upward departure triggers flight;
-downward arrival triggers stance. Both transitions are forced. Their reset maps
-preserve position and velocity.
-
-`make_system()` returns three objects: a `HybridModel` describing the modes and
-transitions, a grid with 81 points on each continuous axis, and signed guard
-events for forward simulation. Boolean guards tell the PDE which grid states
-can switch; signed events locate the switching instant during integration.
-
-To build your own dynamics, subclass `hj_reachability.Dynamics` and implement
-`__call__`, `optimal_control_and_disturbance` and `partial_max_magnitudes`.
-The last method supplies dissipation/CFL bounds over the admissible input space.
-The optimizer must honor `self.control_mode` and `self.disturbance_mode`, which
-the problem layer configures. Start by adapting the small model file above.
-Declare each mode as a `Mode`, each guard/reset as a `Transition`, and group
-simultaneous edges in a `ProjectionStage`. More involved reset composition and
-sampling choices are described in the [API reference](../docs/API.md).
-
-## 4. Choose a task and solve it
-
-The following Python blocks form one walkthrough. Use an interactive Python
-session or put them in a script and launch it with `JAX_ENABLE_X64=true`.
-
-```python
-import numpy as np
-from hybrid_reach import (
-    Problem, solve, Result, ContinuousFeedback, AvoidFilter, simulate,
-)
-from hybrid_reach.examples.vertical_jumper import make_system, goal, failure
-
-model, grid, events = make_system()
-problem = Problem.reach_avoid(model, grid, goal, failure)
-horizons = np.linspace(0., .8, 81)
-result = solve(problem, horizons, save_indices=tuple(range(0, 81, 5)))
-print(result.values.shape)  # (17, 2, 81, 81)
-```
-
-Every adjacent pair of `horizons` is a hybrid coupling interval: here 0.01 s.
-We save every fifth interval, or 0.05 s. All coupling intervals still execute.
-The array axes are `(saved_horizon, mode, height, velocity)`.
-
-Both input set functions are **negative inside** their sets. In the model,
-`goal` returns `abs(z - 1.1) - .1`, and `failure` returns
-`min(z, 2.8 - z)`. The latter is negative outside the floor/ceiling bounds.
-The simulator also treats contact with their boundaries as failure.
-
-To select another objective, use `Problem.reach(model, grid, goal)` or
-`Problem.avoid(model, grid, failure)` and solve that new problem.
-The problem layer selects the control optimization direction automatically.
-
-## 5. Save, reload and control the robot
-
-```python
-result.save('outputs/tutorial_walkthrough/reach_avoid')
-result = Result.load('outputs/tutorial_walkthrough/reach_avoid')
-controller = ContinuousFeedback(problem, result)
-
-trajectory = simulate(
-    problem, controller, initial_state=[.15, 0.], initial_mode=0,
-    duration=.8, feedback_dt=.005, events=events,
-    failure=lambda x, q: float(failure(x, q)),
-    goal=lambda x, q: float(goal(x, q)),
-)
-print(trajectory['status'])
-print(trajectory['final_state'])
-```
-
-`ContinuousFeedback` uses the value gradient to choose the goal-seeking force.
-The simulator starts at height 0.15 m, at rest in stance. It queries feedback
-every 0.005 s and also stops integration at switching events. After each reset,
-it queries the controller in the resulting mode. Remaining time decreases from
-0.8 s as physical time advances.
-
-`Result.load` reads the values as a memory map. The numerical files do not store
-Python dynamics; retain the model code and parameters so you can reconstruct
-`problem` when loading in a new process.
-
-## 6. Try the avoid safety filter
-
-Now give the robot a nominal zero-force control. The avoid filter passes it
-through when the candidate's value is above the margin and intervenes otherwise.
-This block reuses `model`, `grid` and `events` from the walkthrough:
-
-```python
-avoid_problem = Problem.avoid(model, grid, failure)
-avoid_result = solve(avoid_problem, horizons,
-                     save_indices=tuple(range(0, 81, 5)))
-hlrf = AvoidFilter(avoid_problem, avoid_result, margin=.03)
-
-def filtered_control(state, mode, time_to_go):
-    return hlrf(state, mode, time_to_go,
-                nominal_control=lambda post_state, post_mode: np.zeros(1))
-
-avoid_trajectory = simulate(
-    avoid_problem, filtered_control, [.15, 0.], 0,
-    duration=.8, feedback_dt=.005, events=events,
-    failure=lambda x, q: float(failure(x, q)),
-)
-print(avoid_trajectory['status'])  # deadline: completed the finite horizon
-print(avoid_trajectory['continuous_intervention'].sum())
-```
-
-The nominal callback receives the post-reset state and mode. Its returned input
-must be admissible there. This jumper has only forced switches; models with
-controlled transitions can also request nominal discrete choices. See
-[`AvoidFilter` in the API reference](../docs/API.md) for those arguments.
-
-If every candidate is unsafe, the filter still chooses its best legal action
-and reports `safe_candidate=False`. Its margin is an intervention buffer.
-Reach/reach-avoid use goal-seeking feedback; the package's least-restrictive
-filter is available for avoid only.
-
-## 7. Make one change
-
-First change the height goal while keeping the dynamics and grid fixed:
-
-```python
-def higher_goal(states, mode):
-    return abs(states[..., 0] - 1.4) - .1
-
-higher_problem = Problem.reach_avoid(model, grid, higher_goal, failure)
-higher_result = solve(higher_problem, horizons)
-```
-
-Use `higher_problem` and `higher_result` together for its controller. Then try
-changing the grid through `make_system(shape=(101,101))`, the horizon, or the
-feedback interval, one at a time. These affect different approximations; see
-[the overview's resolution table](../docs/OVERVIEW.md#what-changes-when-you-refine-a-result).
-
-Continue with the [planar jumper](PLANAR_JUMPER.md) for horizontal motion and
-pillars, or the [paper guide](../examples/papers/README.md) for complete experiment
-commands and recorded outcomes.
+The earlier [vertical-jumper example](VERTICAL_JUMPER.md) and
+[planar-jumper continuation](PLANAR_JUMPER.md) remain available as additional
+models after this lesson.

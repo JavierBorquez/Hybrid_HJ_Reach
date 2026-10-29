@@ -49,7 +49,7 @@ With this tree's environment, the CPU suite and small tutorial are:
 
 ```bash
 JAX_PLATFORMS=cpu JAX_ENABLE_X64=true .venv/bin/python -m pytest -q
-JAX_PLATFORMS=cpu JAX_ENABLE_X64=true .venv/bin/python tutorials/jumper.py --output outputs/agent_jumper
+JAX_PLATFORMS=cpu JAX_ENABLE_X64=true .venv/bin/python tutorials/falling_piece.py --output outputs/agent_falling_piece
 ```
 
 Choose a fresh output directory for reruns. Existing results are deliberately

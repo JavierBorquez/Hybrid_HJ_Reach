@@ -144,8 +144,16 @@ def simulate(problem, controller, initial_state, initial_mode, *, duration, feed
         if not solution.success:
             raise RuntimeError(solution.message)
         new_t, new_x = float(solution.t[-1]), solution.y[:, -1]
-        if new_t-t < 1e-12:
+        hit = next((names[i] for i, times in enumerate(solution.t_events or ()) if len(times)), None)
+        terminal_hit = hit is not None and not hit.startswith("guard:")
+        if new_t-t < 1e-12 and not terminal_hit:
             status = "zeno_contact"
+            break
+        if new_t <= t:
+            # A located terminal root already resolves the contact. Preserve its
+            # actual state/time without adding a duplicate-time flow segment.
+            t, x = new_t, new_x
+            status = current_status(x, q) or hit
             break
         records.append((t, x.copy(), q, u.copy(), decision.value,
                         decision.continuous_intervention, decision.discrete_intervention, decision.safe_candidate))
@@ -154,7 +162,6 @@ def simulate(problem, controller, initial_state, initial_mode, *, duration, feed
             audits.append(audit)
         else:
             audit = {}
-        hit = next((names[i] for i, times in enumerate(solution.t_events) if len(times)), None)
         if hit and hit.startswith('guard:'):
             event = next(e for e in events if q in e.modes and 'guard:'+e.name == hit)
             new_x, correction = _normalize_guard_face(new_x, event, lower, upper)

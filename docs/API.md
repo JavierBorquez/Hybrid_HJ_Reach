@@ -158,3 +158,7 @@ Root detection and floating-point ODE tolerances are not interval verification.
 Tangential or multiple contacts within one integration step may need independent
 model-specific clearance checks. An unresolved zero-time contact is reported
 as `zeno_contact`, never bypassed using state clipping or artificial time advance.
+A located goal/failure/domain terminal event resolves the contact even when its
+flow interval is shorter than 1e-12 s. Its actual event state/time are retained;
+an exactly zero-duration terminal event adds no duplicate-time flow record.
+Simulation also supports modes with no active event functions, such as rest.

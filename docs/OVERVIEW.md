@@ -24,21 +24,22 @@ that requirement in the goal set.
 ## What makes a system hybrid?
 
 A hybrid state consists of a continuous state `x` and a discrete mode `q`.
-For the tutorial jumper, `x=(height, vertical_velocity)` and `q` is stance or
-flight. Each mode has its own continuous dynamics and allowable controls.
+For the tutorial falling piece, `x=(horizontal_position, height)` and `q` is
+steer, drop or rest. Each mode has its own continuous dynamics and allowable
+controls.
 
 A **guard** says when a transition is eligible. A **reset** says how the
-continuous state changes when that transition occurs. The jumper's launch
-and landing resets preserve height and velocity; only the mode changes.
+continuous state changes when that transition occurs. The falling piece's
+switches preserve position; only the mode changes.
 A spacecraft switch also resets its clock.
 
 ```mermaid
 flowchart LR
-    S[Stance: upward force available] -->|Launch at leg height| F[Flight: ballistic motion]
-    F -->|Land at leg height| S
+    S[Steer: slow fall, horizontal input] -->|Cross upper height| D[Drop: fast fall, no input]
+    D -->|Cross lower height| R[Rest: no motion]
 ```
 
-Some transitions are **forced**, such as landing. Others are **controlled**,
+Some transitions are **forced**, such as entering the fast-drop band. Others are **controlled**,
 such as choosing to start a spacecraft thrust cycle. When a forced guard is
 active, staying in the source mode is unavailable. A controlled transition
 includes the option to stay.
@@ -59,9 +60,9 @@ The package uses the following signs:
 | Reach or reach-avoid result | `V <= 0` on the computed winning side |
 | Avoid result | `V > 0` on the computed safe side |
 
-For example, `abs(height - 1.1) - .1` describes the height band from 1.0 to
-1.2 m. A failure field `min(height, 2.8 - height)` is negative below the floor
-or above the ceiling. The `Problem` constructors apply the objective's signs
+For example, `abs(x - .9) - .3` describes the horizontal interval from .6 to
+1.2. Combine it with a height interval using `maximum` to define a rectangle.
+Take `minimum` across obstacle fields to describe their union. The `Problem` constructors apply the objective's signs
 and optimization directions for you.
 
 A zero value needs care, especially for reach-avoid: it alone does not prove
@@ -126,5 +127,5 @@ trajectory is useful evidence, but it does not establish convergence of the
 whole computed set. The [validation record](VALIDATION.md) distinguishes those
 claims.
 
-Continue with the [vertical-jumper tutorial](../tutorials/README.md) to run this
+Continue with the [falling-piece tutorial](../tutorials/README.md) to run this
 pipeline and inspect its outputs.

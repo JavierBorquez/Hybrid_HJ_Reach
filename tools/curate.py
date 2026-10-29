@@ -16,7 +16,7 @@ def curate(destination):
     paths = []
     for directory in ("src", "tests", "tutorials", "examples", "docs", "tools"):
         paths.extend(p for p in (source/directory).rglob("*")
-                     if p.is_file() and p.suffix in (".py", ".md", ".png") and not p.is_symlink())
+                     if p.is_file() and p.suffix in (".py", ".md", ".png", ".gif") and not p.is_symlink())
     paths.extend(source/name for name in ("AGENTS.md", "README.md", "CHANGELOG.md", "pyproject.toml", ".gitignore", "MANIFEST.in"))
     destination.mkdir(parents=True)
     hashes = {}

@@ -42,6 +42,13 @@ def physical_field(result, p):
         np.where(y[None, :] <= p.y_high, result.values[-1, 1], result.values[-1, 0]))
 
 
+def display_label(name, kind):
+    if kind == "reach":
+        return {"A": "A: inside BRT aligned", "B": "B: inside BRT steer",
+                "C": "C: outside BRT guaranteed fail"}.get(name[:1], name)
+    return name
+
+
 def reachable_background(ax, result, p):
     field = physical_field(result, p)
     colors = ["#d5eddf", "#f0f1f3"] if result.kind != "avoid" else ["#f7d9d6", "#d5eddf"]
@@ -92,8 +99,9 @@ def plot_brt(result, p, trajectories, output):
     for i, (name, trajectory) in enumerate(trajectories.items()):
         color = plt.get_cmap("tab10")(i)
         x, y = trajectory["state"].T
+        label = display_label(name, result.kind)
         ax.plot(x, y, color=color, linewidth=1.6,
-                label=f"{name}: {trajectory['status']}")
+                label=label if result.kind == "reach" else f"{label}: {trajectory['status']}")
         ax.plot(x[0], y[0], "s", color=color, markersize=5)
     meaning = "Green: computed safe set; red: failure BRT" if result.kind == "avoid" else "Green: computed winning BRT"
     ax.set_title(f"{result.kind.replace('_', '-')}, T={result.horizons[-1]:g} s\n{meaning}")
@@ -113,21 +121,30 @@ def animate(result, p, trajectories, output, *, frames=81):
     ax.text(.5, 6.7, "STEER", transform=ax.get_yaxis_transform(), ha="center", fontsize=10)
     ax.text(.5, 3.7, "DROP", transform=ax.get_yaxis_transform(), ha="center", fontsize=10)
     ax.text(.5, .5, "REST", transform=ax.get_yaxis_transform(), ha="center", fontsize=10)
+    reach = result.kind == "reach"
     artists = []
     for i, (name, trajectory) in enumerate(trajectories.items()):
         color = plt.get_cmap("tab10")(i)
-        line, = ax.plot([], [], color=color, linewidth=1.8, label=name)
+        line, = ax.plot([], [], color=color, linewidth=1.8, label=display_label(name, result.kind))
         marker, = ax.plot([], [], "s", color=color, markersize=7, markeredgewidth=2)
-        text = ax.text(1.04, .87-i*.17, "", transform=ax.transAxes, fontsize=9, va="top")
+        text_y = .61-i*.20 if reach else .87-i*.17
+        text = ax.text(1.04, text_y, "", transform=ax.transAxes, fontsize=9, va="top")
         artists.append((name, trajectory, line, marker, text))
-    ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1), fontsize=8)
+    handles, labels = ax.get_legend_handles_labels()
+    if reach:
+        handles.insert(0, Patch(facecolor="#d5eddf"))
+        labels.insert(0, "Reach BRT")
+    ax.legend(handles, labels, loc="upper left", bbox_to_anchor=(1.02, 1), fontsize=8)
     title = ax.set_title("")
     fig.subplots_adjust(left=.10, right=.67, top=.89, bottom=.11)
     horizon = float(result.horizons[-1])
 
     def draw(time):
-        title.set_text(f"{result.kind.replace('_', '-')} | t={time:.2f} s | remaining={horizon-time:.2f} s\n"
-                       "Background: initial horizon; orange outline: filter intervention")
+        if reach:
+            title.set_text(f"Reach | t={time:.2f} s")
+        else:
+            title.set_text(f"{result.kind.replace('_', '-')} | t={time:.2f} s | remaining={horizon-time:.2f} s\n"
+                           "Background: initial horizon; orange outline: filter intervention")
         for name, tr, line, marker, text in artists:
             times, states = tr["time"], tr["state"]
             sample_time = min(time, float(times[-1]))
@@ -144,7 +161,8 @@ def animate(result, p, trajectories, output, *, frames=81):
                             and bool(tr["continuous_intervention"][control_index]))
             marker.set_markeredgecolor("#f19a22" if intervention else line.get_color())
             status = tr["status"] if stopped else MODE_NAMES[int(tr["mode"][index])]
-            text.set_text(f"{name}\n{status}\nu={control:+.1f}")
+            text_name = name[:1] if reach else name
+            text.set_text(f"{text_name}\n{status}\nu={control:+.1f}")
         return ()
 
     animation = FuncAnimation(fig, draw, frames=np.linspace(0., horizon, frames), blit=False)

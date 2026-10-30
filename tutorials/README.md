@@ -9,19 +9,15 @@ crossing a line, the piece drops quickly in its chosen column. At the bottom it
 stops. Reaching a target or missing an obstacle therefore depends on a decision
 you must make *before* the drop.
 
-The piece is a point at position `(x,y)`. Square markers in the animations only
-show that point; they do not add a block footprint or rotation.
-
-This lesson first builds the shared model. The next pages use it to reach a
-target, avoid obstacles, and combine both. Each page explains the expected
-behavior, shows the code, then runs the example and interprets its BRT and GIF.
+This lesson first builds this hybrid model. The next pages use it to reach a
+target, avoid obstacles, and combine both.
 
 ## 1. Understand the three bands
 
 ![Three bands: steer slowly above y=4, drop quickly down to y=1, then rest; green target and red obstacles](../docs/images/falling_piece_setup.png)
 
-The state is position, not velocity. Your input directly sets horizontal speed
-while steering is available. Vertical speed depends on the mode:
+The state is the position `(x,y)` of the falling piece. The input directly sets
+horizontal speed when steering is available. Vertical speed depends on the mode:
 
 | Mode | Physical band | Motion | Input |
 |---|---|---|---|
@@ -29,30 +25,18 @@ while steering is available. Vertical speed depends on the mode:
 | `1`, drop | `1 < y <= 4` | `xdot = 0`, `ydot = -5` | `u = 0` |
 | `2`, rest | `y <= 1` | `xdot = 0`, `ydot = 0` | `u = 0` |
 
-There is no jumping, acceleration control or choice to delay the fall. At
-`y=4` you lose steering; at `y=1` you stop. Position stays continuous at both
+At `y=4` you lose steering; at `y=1` you stop. Position stays continuous at both
 switches. This is a **hybrid system** because the continuous motion changes
 when the discrete mode changes.
 
-```mermaid
-flowchart LR
-    A[Steer: xdot=u, ydot=-1] -->|Cross y=4 downward| B[Drop: xdot=0, ydot=-5]
-    B -->|Cross y=1 downward| C[Rest: no motion]
-```
-
 The complete runnable model is
 [`src/hybrid_reach/examples/falling_piece.py`](../src/hybrid_reach/examples/falling_piece.py).
-The snippets below explain its parts. You can read them before installing
-anything; [setup](../docs/SETUP.md) is needed when you reach the run commands.
+The snippets below explain the core parts.
 
 ## 2. Code the continuous dynamics
 
-Think of the dynamics as answering: **“Given my mode and input, how fast does
-each coordinate change right now?”** The solver needs this vector field for
-every admissible input, not just for one controller.
-
 We subclass `hj_reachability.Dynamics`. Its control space describes the inputs
-available in each mode. The disturbance space is empty because this example
+available in each mode. The disturbance space is empty because this particular example
 has no adversary. This is the beginning of `FallingDynamics`:
 
 ```python
@@ -76,22 +60,23 @@ class FallingDynamics(hj.Dynamics):
 ```
 
 `state` is `[x,y]` and `control` is a one-element array `[u]`. The returned array
-is `[xdot,ydot]`. Both inactive modes have the input box `[0,0]`, so a controller
-cannot accidentally steer after the switch.
-
-Two methods complete this class. Add the next methods inside the same class,
-or use the complete model file linked above.
+is `[xdot,ydot]`. Both inactive modes have the input box `[0,0]`, because a controller
+cannot steer after the first switch.
 
 ## 3. Tell the solver how to choose an optimal input
 
-A value field assigns a score to each possible state. Its horizontal derivative
-`Vx` tells us how moving right changes that score. For goal seeking we minimize
-the score; for avoidance we maximize safety.
+The ability to reach or avoid a set in the future from a given state, as in classical HJ reachability,
+is encoded in a value function `V`, which captures how far we can get into or stay outside the set under optimal decision-making.
+Its horizontal derivative `Vx` tells us how moving right changes that score.
+
+The convention is that the implicit functions that capture the goal/failure sets are negative within the set,
+and positive outside of it, with their zero-level set representing the boundary of the set.
+Because of this, for goal seeking we want to minimize this score (move towards negative values); for avoidance, we maximize it (move away from negative values). For reach-avoid, the convention is to keep the definition for the goal and make the obstacles positive inside and negative outside, so the controller minimizes in this case (moving towards the negative goal and away from the positive obstacles).
 
 In the steering band, the Hamiltonian is `H = Vx*u - Vy`. Only `Vx*u` depends
 on the input. To minimize it, move left when `Vx>0` and right when `Vx<0`.
 To maximize it, reverse those choices. At `Vx=0`, zero is an admissible optimal
-choice. In the other bands the only input is zero.
+choice. In the other bands, we don't have access to any control, so the input is zero.
 
 That reasoning becomes this method inside `FallingDynamics`:
 
@@ -121,11 +106,9 @@ not the velocity under a nominal policy.
 
 ## 4. Code the switching boundaries and resets
 
-The two height lines answer a different question from the vector field:
-**“When must I change mode?”** At a switch, the position is unchanged, but its
-future motion changes immediately.
+The two height lines change how the state evolves. These are discrete mode switches between continuous dynamics. In this particular case, position is unchanged at a switch, but the method also allows the state to jump instantaneously to a new state.
 
-A Boolean **guard** marks eligible states. A **reset** maps the continuous
+A Boolean **guard** marks eligible states for the transition. A **reset** maps the continuous
 state across the switch. Identity resets express continuity of position:
 
 ```python
@@ -149,19 +132,13 @@ model = HybridModel(modes, (
 ))
 ```
 
-`forced` means staying is unavailable when the guard is active. For backward
-value propagation, we first make the drop field read rest values, then make the
-steer field read drop values. Physical forward paths follow the reverse order:
-steer → drop → rest. The [API reference](../docs/API.md) explains composition for
-more elaborate models.
+`forced` means staying is unavailable when the guard is active. In other systems, transitions can be `controlled`,
+which lets the controller take the discrete transition or skip it and stay in its current mode.
 
-The explicit `guard_tolerance=1e-10` accepts tiny height roundoff near a feedback
-endpoint. It affects guard membership, never clips or moves a state. Exact
-switch timing is checked against the analytic fall times.
+The explicit `guard_tolerance=1e-10` accepts tiny height roundoff near the transition surface.
 
-During a forward simulation, checking the guard only at feedback samples could
-miss the instant of crossing. Supply a signed height function so the integrator
-can locate the crossing between samples:
+During simulation, checking the guard only at sampled states could miss the instant of crossing.
+That's why we supply a height function so the simulator can locate the crossing between samples:
 
 ```python
 events = (
@@ -175,7 +152,7 @@ required transition and queries control in the new mode.
 
 ## 5. Code the grid boundaries
 
-We now choose where to represent the value fields: `x` from -3 to 3 and `y`
+We now choose where to represent and calculate the value function: `x` from -3 to 3 and `y`
 from 0 to 7. These are the **numerical domain edges**, separate from the mode
 boundaries at heights 4 and 1.
 
@@ -185,12 +162,6 @@ grid = hj.Grid.from_lattice_parameters_and_boundary_conditions(
     (101, 141),
 )
 ```
-
-The factory uses nonperiodic `extrapolate_away_from_zero` boundary conditions
-by default. These provide numerical ghost values outside the grid; they do not
-create a physical wall. We will explicitly encode side walls in the failure
-set for avoid/reach-avoid. The rest band is safe, so the bottom is not a failure
-surface. Simulation reports an actual domain exit rather than clipping it.
 
 The grid axes are `(x,y)`. Mode is a separate value-array axis. All three modes
 use this shared grid internally; plots show each field only in its physical band.
@@ -215,7 +186,3 @@ Open `outputs/falling_piece/setup.png` and each task's `brt.png` and
 `policy.gif`. Avoid also writes `filter.gif`. Use a fresh `--output` directory
 for reruns. This CPU example uses a 4 s horizon; any point starting in the top
 band reaches rest within 3.6 s if it does not terminate sooner.
-
-The earlier [vertical-jumper example](VERTICAL_JUMPER.md) and
-[planar-jumper continuation](PLANAR_JUMPER.md) remain available as additional
-models after this lesson.

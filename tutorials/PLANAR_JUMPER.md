@@ -2,7 +2,7 @@
 
 [Home](../README.md) · [Falling-piece tutorial](README.md) · [Paper commands and expected outputs](../examples/papers/README.md)
 
-The [vertical-jumper example](VERTICAL_JUMPER.md) introduces modes, sets and HLRF decisions.
+The [falling-piece tutorial](README.md) introduces modes, sets and HLRF decisions.
 Here the state becomes `(x,z,vx,vz)` and failure includes two pillars plus the
 floor. The same solver and filter are used; the physical adapter supplies event
 surfaces, ODE flow and conditional clearance checks.

@@ -189,6 +189,31 @@ to the original solve command, then use `--rollouts-only` later. Partial streame
 solves cannot yet be restarted automatically. `--skip-nominal` omits avoid
 baseline trajectories.
 
+## Animate a completed run
+
+Render the saved jumper safety-filter or spacecraft reach-avoid trajectories
+without recomputing the value function or feedback. The animation script reads
+`configuration.json`, `rollouts.json` and the trajectory `.npz` files:
+
+```bash
+python examples/papers/animate.py outputs/papers/jump_avoid_demo \
+  --output outputs/animations/jumper_filter.gif
+python examples/papers/animate.py outputs/papers/satellite_reach_avoid_demo \
+  --output outputs/animations/satellite_reach_avoid.gif
+```
+
+Both commands require the corresponding completed run. Use a fresh output path
+for rerenders. `--frames`, `--fps` and `--hold` control playback only. Positions
+are linearly interpolated between saved physical samples; modes, controls and
+intervention flags follow the recorded samples. Each path stops at its recorded
+endpoint, retaining nominal collisions. A JSON sidecar records the source hashes,
+saved outcomes and rendering settings. The script uses NumPy, Matplotlib and
+Pillow from the `examples` extra.
+
+The [main-page previews](../../docs/PAPER_ANIMATIONS.md) use the previously
+validated demo trajectories. Their generated GIFs ship with the documentation;
+the large numerical histories remain outside the source export.
+
 ## RSS value-function recipes
 
 For Dog1D, begin with:

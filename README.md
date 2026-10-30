@@ -10,7 +10,14 @@ using `hj_reachability` and JAX. It includes feedback controllers, an avoid-only
 hybrid least-restrictive safety filter, and examples from the RSS and IJRR
 hybrid reachability studies.
 
-![Falling-piece reach-avoid policy: steer before the drop to reach the clear part of the target](docs/images/falling_piece_reach_avoid_policy.gif)
+| Jumping robot · safety filtering | Spacecraft · reach-avoid |
+|:---:|:---:|
+| ![Saved jumper trajectories: safety-filtered control clears the pillars while nominal control collides](docs/images/paper_jumper_filter.gif) | ![Saved spacecraft reach-avoid trajectories from two initial conditions reach the goal around the obstacles](docs/images/paper_satellite_reach_avoid.gif) |
+
+The jumper's filter intervenes to clear the pillars; the dashed nominal trajectory
+collides. The spacecraft uses goal-seeking reach-avoid feedback from two starts.
+These animations replay the saved [paper-model demos](examples/papers/README.md).
+[Animation sources and settings](docs/PAPER_ANIMATIONS.md) are recorded separately.
 
 The [first tutorial](tutorials/README.md) asks you to steer a falling piece
 into the right column before steering disappears. It generates BRT plots and

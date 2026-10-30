@@ -1,6 +1,6 @@
 # Run the paper experiments
 
-[Home](../../README.md) · [Concepts](../../docs/OVERVIEW.md) · [Tutorial](../../tutorials/README.md)
+[Home](../../README.md) · [IJRR paper](https://doi.org/10.1177/02783649261477777) · [Tutorial](../../tutorials/README.md)
 
 This guide maps the paper examples to runnable commands and tells you what each
 command produces. Start with the short CPU workflow below. Then run a complete
@@ -19,7 +19,7 @@ The examples come from two studies:
   [Paper](https://roboticsproceedings.org/rss20/p006.pdf).
 - IJRR study: *Hamilton-Jacobi Reachability for Hybrid Systems: Unified Goal-Driven
   Control with Safety Guarantees* (Borquez, Peng and Bansal).
-  [Preprint](https://arxiv.org/abs/2609.17430).
+  [Published paper](https://doi.org/10.1177/02783649261477777) · [Preprint](https://arxiv.org/abs/2609.17430).
 
 The public package implements these example models with documented changes in
 hybrid projection, numerical bounds and feedback. The status is:

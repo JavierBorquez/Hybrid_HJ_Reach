@@ -1,6 +1,6 @@
 # Additional example: a vertical jumping robot
 
-[Home](../README.md) · [Falling-piece tutorial](README.md) · [Concepts](../docs/OVERVIEW.md) · [Paper examples](../examples/papers/README.md)
+[Home](../README.md) · [Falling-piece tutorial](README.md) · [IJRR paper](https://doi.org/10.1177/02783649261477777) · [Paper examples](../examples/papers/README.md)
 
 In this tutorial you will compute where a small robot can jump, use the result
 to control it, and inspect its trajectory. The robot moves only vertically, so
@@ -203,7 +203,7 @@ higher_result = solve(higher_problem, horizons)
 Use `higher_problem` and `higher_result` together for its controller. Then try
 changing the grid through `make_system(shape=(101,101))`, the horizon, or the
 feedback interval, one at a time. These affect different approximations; see
-[the overview's resolution table](../docs/OVERVIEW.md#what-changes-when-you-refine-a-result).
+[the API reference](../docs/API.md#solver-and-results).
 
 Continue with the [planar jumper](PLANAR_JUMPER.md) for horizontal motion and
 pillars, or the [paper guide](../examples/papers/README.md) for complete experiment

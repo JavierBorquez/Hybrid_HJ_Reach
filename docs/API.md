@@ -1,9 +1,9 @@
 # API and numerical semantics
 
-[Home](../README.md) · [Conceptual overview](OVERVIEW.md) · [First tutorial](../tutorials/README.md)
+[Home](../README.md) · [IJRR paper](https://doi.org/10.1177/02783649261477777) · [First tutorial](../tutorials/README.md)
 
-This is the detailed reference for the public API. Start with the overview and
-tutorial for a guided introduction.
+This is the detailed reference for the public API. Read the IJRR paper for the theory and
+follow the tutorial for a guided introduction to the code.
 
 ## System and problem
 

@@ -1,7 +1,6 @@
 # Working on hybrid reachability
 
-This directory is the self-contained public source tree. In the research
-checkout it is developed privately and exported with `tools/curate.py`.
+This directory is the self-contained public source tree.
 Prioritize correct hybrid dynamics and HJVI semantics over MATLAB agreement.
 
 ## Read first
@@ -130,14 +129,7 @@ private research checkout, also update its implementation log when applicable.
 Retain failed diagnostics and original evidence rather than rewriting history.
 
 Keep generated fields, trajectories, logs and source snapshots in `outputs/`.
-Public exports include lightweight source, tests and documentation only:
-
-```bash
-.venv/bin/python tools/curate.py /tmp/hybrid-reach-fresh-export
-```
-
-The destination must be new and outside this tree. Verify the exported copy can
-import and run independently, and that `AGENTS.md` and the file-hash manifest are
-present. Exporting creates files locally; it does not publish a repository.
-Preserve this boundary when changing the allowlist: private archives, PDFs,
+Public exports include lightweight source, tests and documentation only.
+`EXPORT_MANIFEST.json` records their file hashes. Private export tools stay
+outside the published tree. Preserve this boundary: private archives, PDFs,
 MATLAB files, environments and Git history do not belong in the public export.

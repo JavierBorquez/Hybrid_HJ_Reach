@@ -128,6 +128,11 @@ or timer/clock phases. Dog1D shades the part of the curve inside the BRT; the
 other cases shade the BRT/BRAT in the position plane. A short `smoke` horizon
 may show only a small part of the tube.
 
+The saved spacecraft reach-avoid demo gives these BRAT slices at 780 s, with
+velocities nearest zero and clock phase zero. Green marks `V <= 0`:
+
+![Spacecraft BRAT position slices for idle, thrust and cooldown at a 780-second horizon](../../docs/images/paper_satellite_brat_slices.png)
+
 ## 3. Use the values as feedback or a safety filter
 
 The ready-made trajectory workflow currently covers the four IJRR cases. RSS

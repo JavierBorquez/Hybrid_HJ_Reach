@@ -12,7 +12,7 @@ JAX_PLATFORMS=cpu JAX_ENABLE_X64=true python -m pytest -q
 
 The suite includes analytic translation checks, hybrid reset/failure priority,
 policy decisions, interpolation, streamed-history equivalence, paper-model
-smoke solves and export checks. [VALIDATION.md](VALIDATION.md) records the
+smoke solves. [VALIDATION.md](VALIDATION.md) records the
 previous CPU/GPU measurements and their limits.
 
 ## Find the code
@@ -33,20 +33,8 @@ for development invariants and [CHANGELOG.md](../CHANGELOG.md) for prior decisio
 Record new numerical workarounds or semantic changes with their reason, location
 and validation evidence.
 
-## Create a source snapshot
-
-Development may take place in a private research checkout. The export tool copies
-an allowlist of source, tests and documentation into a new standalone directory:
-
-```bash
-python tools/curate.py /tmp/hybrid-reach-fresh-export
-```
-
-Choose a destination that does not exist and is outside this source tree.
-`EXPORT_MANIFEST.json` records SHA-256 hashes. Generated `outputs/`, MATLAB,
-PDFs, environments and Git history are excluded. The command creates local
-files; it does not publish a repository. Test the exported copy with its own
-source path/environment before sharing it.
+`EXPORT_MANIFEST.json` records SHA-256 hashes of the public files. Export
+preparation tools stay in the private checkout and are ignored by Git.
 
 A public release still needs an explicit license and upstream attribution
 review. The larger reference experiments and the remaining RSS rollout/figure

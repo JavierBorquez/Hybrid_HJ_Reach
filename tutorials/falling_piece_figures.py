@@ -45,8 +45,9 @@ def physical_field(result, p):
 
 def display_label(name, kind):
     if kind in ("reach", "reach_avoid"):
-        return {"A": "A: inside BRT aligned", "B": "B: inside BRT steer",
-                "C": "C: outside BRT guaranteed fail"}.get(name[:1], name)
+        tube = "BRAT" if kind == "reach_avoid" else "BRT"
+        return {"A": f"A: inside {tube} aligned", "B": f"B: inside {tube} steer",
+                "C": f"C: outside {tube} guaranteed fail"}.get(name[:1], name)
     if kind == "avoid":
         if name.endswith("nominal") or name.endswith("filtered"):
             policy = name.rsplit(": ", 1)[-1]
@@ -110,11 +111,12 @@ def plot_brt(result, p, trajectories, output):
         ax.plot(x, y, color=color, linewidth=1.6,
                 label=label if result.kind == "reach" else f"{label}: {trajectory['status']}")
         ax.plot(x[0], y[0], "s", color=color, markersize=5)
-    meaning = "Green: computed safe set; red: failure BRT" if result.kind == "avoid" else "Green: computed winning BRT"
+    tube = "BRAT" if result.kind == "reach_avoid" else "BRT"
+    meaning = "Green: computed safe set; red: failure BRT" if result.kind == "avoid" else f"Green: computed winning {tube}"
     ax.set_title(f"{result.kind.replace('_', '-')}, T={result.horizons[-1]:g} s\n{meaning}")
     handles, labels = ax.get_legend_handles_labels()
     handles.insert(0, Patch(facecolor="#d5eddf"))
-    labels.insert(0, "Computed safe set" if result.kind == "avoid" else "Computed winning BRT")
+    labels.insert(0, "Computed safe set" if result.kind == "avoid" else f"Computed winning {tube}")
     ax.legend(handles, labels, loc="upper left", bbox_to_anchor=(1.02, 1), fontsize=8)
     fig.tight_layout()
     fig.savefig(output, dpi=130, bbox_inches="tight")
@@ -142,7 +144,7 @@ def animate(result, p, trajectories, output, *, frames=81):
         labels[:0] = ["Avoid BRT", "Safe set"]
     else:
         handles.insert(0, Patch(facecolor="#d5eddf"))
-        labels.insert(0, "Reach BRT" if result.kind == "reach" else "Reach-avoid BRT")
+        labels.insert(0, "Reach BRT" if result.kind == "reach" else "BRAT")
     if comparison:
         handles.append(Line2D([], [], color="none", marker="s", markerfacecolor="none",
                               markeredgecolor="#f19a22", markeredgewidth=2))

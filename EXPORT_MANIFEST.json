@@ -3,7 +3,7 @@
   "sha256": {
     ".gitignore": "f09d1112e6ba660eeb000616856dcc5099e1e86bcbce7ce219583adc74c453b6",
     "AGENTS.md": "5a9ac3a6bdf885bc7ec49919b2dd15e37363bdb9a4d84bcd86363f1730baa258",
-    "CHANGELOG.md": "60bbb0fe8b5480f8aff9d8b0dde31c7327f1634c7e00406972e40c5f99705774",
+    "CHANGELOG.md": "25a5f6ad5bcc6d24018fca86c515170e152d472f87723c4d707c248ebf7a7ed0",
     "MANIFEST.in": "36087d32b56b06b24d00facb5a7e1f7474fce54cde9d5183d255baac4c70cbd1",
     "README.md": "8c9e9d9341655411d9265ab4ea4246b2164fb110d54827b08d79dec02284531c",
     "docs/API.md": "f7af25fc34d0da0bad469f20522af15e3c9a25c106378762873921b7bbe45d98",
@@ -11,11 +11,11 @@
     "docs/PAPER_ANIMATIONS.md": "54bae6472d5fd66f706dffbec4f1266393387bcbbe262a6fc0f19f77b9e74a7a",
     "docs/SETUP.md": "ce51cf95b92de97156d7fe0beabb08c452a53769d9289a3cdbacdd2388e3f044",
     "docs/VALIDATION.md": "fbcae2d3b3b47de8abfd1cb5e47db10149d14a278b16e0f8ec1e57b5a5aa0fa7",
-    "docs/images/falling_piece_avoid_brt.png": "b73e650a499e3aecc117b3a641d1569784e2e30a5b6974fdd0d8cfcc907c04d7",
+    "docs/images/falling_piece_avoid_brt.png": "f0a34e8ef6c4623d020c75c8fb6e01c7653170f872206860a2ae87c37fff5a39",
     "docs/images/falling_piece_avoid_filter.gif": "afcd6bc08ce2ae58ee522478bb511b2b657bbccee22ad72a634ad92120c3a220",
-    "docs/images/falling_piece_avoid_policy.gif": "7cc155236d73800f9b10d706e8340842686b22ade8daf483521a1182fa802fac",
-    "docs/images/falling_piece_reach_avoid_brt.png": "3f704b68eedbb8daf475af1a73bdcf014bb6836df65913a2b0a57a11c681e523",
-    "docs/images/falling_piece_reach_avoid_policy.gif": "6bf7bea4d218bc8c5c328657fe6bc6ecbf43353b4b2d6fbf8b91e17797845191",
+    "docs/images/falling_piece_avoid_policy.gif": "4082551472967845b09ba457975801767f3363be23c70272f126a793a63844cf",
+    "docs/images/falling_piece_reach_avoid_brt.png": "d58678e44dd0fe361ee17e2e03dcfca08469ed06437c2dcce7d4bc94edfd3e62",
+    "docs/images/falling_piece_reach_avoid_policy.gif": "1cfb901bbaeb454e4edd3bb49708b41848f6da6d662cbcf05c2300b5b785e97c",
     "docs/images/falling_piece_reach_brt.png": "40e56028842cfbe6e62bf11faabbe23080b8fcfce80624178fdf5d146e03394b",
     "docs/images/falling_piece_reach_policy.gif": "e45aa84f4609b76626d3055f2385272614ef58a35d4271c19e7cb14cd0c0d303",
     "docs/images/falling_piece_setup.png": "5c8faf15ec1058d91d7ff99dde6f80cb09d5733a4a54252b9a66818b1fd15704",
@@ -62,12 +62,12 @@
     "tests/test_paper_recipes.py": "7c53a8f87bd939b77d3d259833397d2e41ad1849f5590cf336a01f5483503642",
     "tests/test_pipeline.py": "d7e445cea350b3bf837a30ae624ece7b42f7024dfe8e9ae9781762bf6041d8cb",
     "tools/curate.py": "f23de8cc2b15e607339cb205b54e58ef3a738a7b30ac0578ec2d6ef008da819f",
-    "tutorials/AVOID.md": "dbc289692802d631a70871b38629e338c259ffe66bd017eafe0ef3b694ee83ba",
+    "tutorials/AVOID.md": "6b21832509abdcf4795ab172e5a0c8d4532054c5462c6957ba29984c56596358",
     "tutorials/PLANAR_JUMPER.md": "2f9bac8ccfa98f6d2df8ef3452ff9d94a9f8a5ab59b563e71367c16ac61c66f7",
     "tutorials/REACH.md": "96aee4db6bea5827772758b39ef2d6fe4001e0371a5eb1ce1f891f50f5740e8d",
-    "tutorials/REACH_AVOID.md": "5583318e927729f7f31f201550f91df3c7b877dd8710220b906d29d2512eabad",
+    "tutorials/REACH_AVOID.md": "fff1d0c15a3957609b5f014a64dba33f2d1a6f7b250706f5010313facbf72cab",
     "tutorials/README.md": "ce69cb6edfec3fb17018f807f64c5c44c9168ad9500318f9d20de8480fc4434b",
-    "tutorials/falling_piece.py": "296dce2ce22dca7055296a8b1621b500381ccf951bc58a33d7647950306be8d3",
-    "tutorials/falling_piece_figures.py": "ff439aff12c4eb5800b06bebd75085167c4cd7a1ceadc319176659f5cd3adb88"
+    "tutorials/falling_piece.py": "6b842538bc826c7efe4ae51c3b6fe1fa89de876b2b692b9ecbe8611f92f4b9d6",
+    "tutorials/falling_piece_figures.py": "7ba67df6fba858abcba94ee6a9f77f3e5d0efa9d95a2480fbf4f466d3e6de09e"
   }
 }

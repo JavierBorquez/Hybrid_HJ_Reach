@@ -15,10 +15,10 @@ from hybrid_reach.examples.falling_piece import goal, failure
 The goal spans `x=0.6` to `1.2`; the blocking obstacle spans `x=0.3` to `0.9`.
 A piece dropping from above must therefore use the target's right-hand part.
 
-## Compute the backward reachable tube
+## Compute the backward reach-avoid tube
 
-The **reach-avoid BRT** contains states from which the target can be reached
-within the horizon without collision before arrival.
+The **backward reach-avoid tube (BRAT)** contains states from which the target
+can be reached within the horizon without collision before arrival.
 
 ```python
 import numpy as np
@@ -32,7 +32,7 @@ result = solve(problem, horizons, save_indices=tuple(range(0, 401, 5)))
 ```
 
 `Problem.reach_avoid` selects minimizing control while retaining failure
-constraints. For this objective, **`V <= 0` is the computed reach-avoid BRT**.
+constraints. For this objective, **`V <= 0` is the computed BRAT**.
 
 ## Turn the field into feedback
 
@@ -69,15 +69,15 @@ Open `outputs/falling_piece/reach_avoid/policy.gif`. Use a fresh `--output`
 directory for reruns. The command also saves the value history, trajectories
 and summary.
 
-![Reach-avoid feedback: A and B inside the BRT reach the clear target columns; C outside it misses](../docs/images/falling_piece_reach_avoid_policy.gif)
+![Reach-avoid feedback: A and B inside the BRAT reach the clear target columns; C outside it misses](../docs/images/falling_piece_reach_avoid_policy.gif)
 
 | Start | Expected behavior |
 |---|---|
-| A: inside BRT aligned, `(0.95,5.8)` | Reaches the target without collision |
-| B: inside BRT steer, `(-1,6.2)` | Steers into a clear target column; reaches it |
-| C: outside BRT guaranteed fail, `(-1,4.4)` | Too little steering time; misses the target |
+| A: inside BRAT aligned, `(0.95,5.8)` | Reaches the target without collision |
+| B: inside BRAT steer, `(-1,6.2)` | Steers into a clear target column; reaches it |
+| C: outside BRAT guaranteed fail, `(-1,4.4)` | Too little steering time; misses the target |
 
-The GIF retains the initial-horizon reach-avoid BRT in green. Its clock shows
+The GIF retains the initial-horizon BRAT in green. Its clock shows
 physical time. Below the blocking obstacle, the winning column widens again.
 C avoids collision but misses the target, so it still fails the reach-avoid task.
 

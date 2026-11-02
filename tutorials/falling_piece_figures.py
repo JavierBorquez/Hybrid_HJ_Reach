@@ -3,6 +3,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, PillowWriter
+from matplotlib.lines import Line2D
 from matplotlib.patches import Patch, Rectangle
 import numpy as np
 
@@ -43,9 +44,15 @@ def physical_field(result, p):
 
 
 def display_label(name, kind):
-    if kind == "reach":
+    if kind in ("reach", "reach_avoid"):
         return {"A": "A: inside BRT aligned", "B": "B: inside BRT steer",
                 "C": "C: outside BRT guaranteed fail"}.get(name[:1], name)
+    if kind == "avoid":
+        if name.endswith("nominal") or name.endswith("filtered"):
+            policy = name.rsplit(": ", 1)[-1]
+            return f"{name[:1]}: outside BRT {policy}"
+        return {"A": "A: outside BRT steer", "B": "B: outside BRT aligned",
+                "C": "C: inside BRT guaranteed fail"}.get(name[:1], name)
     return name
 
 
@@ -121,30 +128,34 @@ def animate(result, p, trajectories, output, *, frames=81):
     ax.text(.5, 6.7, "STEER", transform=ax.get_yaxis_transform(), ha="center", fontsize=10)
     ax.text(.5, 3.7, "DROP", transform=ax.get_yaxis_transform(), ha="center", fontsize=10)
     ax.text(.5, .5, "REST", transform=ax.get_yaxis_transform(), ha="center", fontsize=10)
-    reach = result.kind == "reach"
+    comparison = result.kind == "avoid" and any(name.endswith("filtered") for name in trajectories)
     artists = []
     for i, (name, trajectory) in enumerate(trajectories.items()):
         color = plt.get_cmap("tab10")(i)
         line, = ax.plot([], [], color=color, linewidth=1.8, label=display_label(name, result.kind))
         marker, = ax.plot([], [], "s", color=color, markersize=7, markeredgewidth=2)
-        text_y = .61-i*.20 if reach else .87-i*.17
-        text = ax.text(1.04, text_y, "", transform=ax.transAxes, fontsize=9, va="top")
+        text = ax.text(1.04, .61-i*.20, "", transform=ax.transAxes, fontsize=9, va="top")
         artists.append((name, trajectory, line, marker, text))
     handles, labels = ax.get_legend_handles_labels()
-    if reach:
+    if result.kind == "avoid":
+        handles[:0] = [Patch(facecolor="#f7d9d6"), Patch(facecolor="#d5eddf")]
+        labels[:0] = ["Avoid BRT", "Safe set"]
+    else:
         handles.insert(0, Patch(facecolor="#d5eddf"))
-        labels.insert(0, "Reach BRT")
+        labels.insert(0, "Reach BRT" if result.kind == "reach" else "Reach-avoid BRT")
+    if comparison:
+        handles.append(Line2D([], [], color="none", marker="s", markerfacecolor="none",
+                              markeredgecolor="#f19a22", markeredgewidth=2))
+        labels.append("Filter intervention")
     ax.legend(handles, labels, loc="upper left", bbox_to_anchor=(1.02, 1), fontsize=8)
     title = ax.set_title("")
     fig.subplots_adjust(left=.10, right=.67, top=.89, bottom=.11)
     horizon = float(result.horizons[-1])
 
     def draw(time):
-        if reach:
-            title.set_text(f"Reach | t={time:.2f} s")
-        else:
-            title.set_text(f"{result.kind.replace('_', '-')} | t={time:.2f} s | remaining={horizon-time:.2f} s\n"
-                           "Background: initial horizon; orange outline: filter intervention")
+        task = {"reach": "Reach", "avoid": "Avoid filter" if comparison else "Avoid",
+                "reach_avoid": "Reach-avoid"}[result.kind]
+        title.set_text(f"{task} | t={time:.2f} s")
         for name, tr, line, marker, text in artists:
             times, states = tr["time"], tr["state"]
             sample_time = min(time, float(times[-1]))
@@ -161,7 +172,7 @@ def animate(result, p, trajectories, output, *, frames=81):
                             and bool(tr["continuous_intervention"][control_index]))
             marker.set_markeredgecolor("#f19a22" if intervention else line.get_color())
             status = tr["status"] if stopped else MODE_NAMES[int(tr["mode"][index])]
-            text_name = name[:1] if reach else name
+            text_name = f"{name[:1]} {name.rsplit(': ', 1)[-1]}" if comparison else name[:1]
             text.set_text(f"{text_name}\n{status}\nu={control:+.1f}")
         return ()
 

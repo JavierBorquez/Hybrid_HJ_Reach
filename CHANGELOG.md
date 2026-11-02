@@ -33,6 +33,8 @@ evidence stays in the research repository. Stable decision IDs support review.
 | PUB-26 | Set avoid-only tutorial start B to `(1.3,5.4)` in `tutorials/falling_piece.py`; use backward reach-avoid tube (BRAT) in the reach-avoid lesson and figure labels. | Only B's trajectory was recomputed using the saved avoid field; other trajectories and fields were reused. B finishes safely with an independently audited minimum failure field of 0.4, but maximum-safety feedback still steers left by 1.4. The policy is unchanged; the new start does not make it hold its column. |
 | PUB-27 | Lower avoid start B to `(1.3,4.2)` and publish the BRAT animation at `docs/images/falling_piece_brat_policy.gif`. | B was rerun against the saved field: horizontal range 0.06, minimum failure field 0.44, safe rest outcome. Other trajectories and all fields were reused. The regenerated BRAT GIF uses BRAT in its region and A/B/C legends; its new filename gives the corrected animation a fresh URL. |
 
+| PUB-28 | Remove the extra planar-jumper lesson and shorten `examples/papers/README.md` around choosing, running, checking and animating examples. | Match the falling-piece tutorial’s language, retain runnable commands and measured reproduction limits, and remove the historical comparison discussion. Documentation only; no experiments were run. |
+
 Remaining work before a complete public release:
 
 - Revalidate representative fine-grid outputs under the public semantics.

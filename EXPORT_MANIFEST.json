@@ -3,7 +3,7 @@
   "sha256": {
     ".gitignore": "f09d1112e6ba660eeb000616856dcc5099e1e86bcbce7ce219583adc74c453b6",
     "AGENTS.md": "5a9ac3a6bdf885bc7ec49919b2dd15e37363bdb9a4d84bcd86363f1730baa258",
-    "CHANGELOG.md": "ede5ab330287023a5fc8f61de5af51e796bed70a51722281a41eb61c58447a03",
+    "CHANGELOG.md": "e9381cd15378b14e2f1406f13eb2b4b33d44451023a2d2686bf88d23ef91736d",
     "MANIFEST.in": "36087d32b56b06b24d00facb5a7e1f7474fce54cde9d5183d255baac4c70cbd1",
     "README.md": "8c9e9d9341655411d9265ab4ea4246b2164fb110d54827b08d79dec02284531c",
     "docs/API.md": "f7af25fc34d0da0bad469f20522af15e3c9a25c106378762873921b7bbe45d98",
@@ -21,7 +21,7 @@
     "docs/images/falling_piece_setup.png": "5c8faf15ec1058d91d7ff99dde6f80cb09d5733a4a54252b9a66818b1fd15704",
     "docs/images/paper_jumper_filter.gif": "ccfc937221cdd978fe5302417367b68cbc225b10033057b8b70a976c04067894",
     "docs/images/paper_satellite_reach_avoid.gif": "1c4131eae980796d02ad9c78bda3a461cd33ad6e8f73c442b568b31419ef2993",
-    "examples/papers/README.md": "c7309088b6c7fe3a6fe7ab656411fe8be33fb08cdd018b6459c7ca5249d24440",
+    "examples/papers/README.md": "b852e3e93cede7fa6dfa2ea2bd9ebc01843932d4d12ae9fd90b41cc5505f3579",
     "examples/papers/animate.py": "5c382a59dbd0399e2ade15cbb8ff626f6ae4f377f23523735db4d5f28367708d",
     "examples/papers/figures.py": "29359e641a6c7c96d64496db6c31b50977d77a60b66cb392011461e7035d1534",
     "examples/papers/rollouts.py": "c0ed3f977b3935d217b20ca5b219f6924fe2d7853df11075b555bc41d3f469c8",

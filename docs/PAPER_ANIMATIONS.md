@@ -1,6 +1,6 @@
 # Main-page paper-demo animations
 
-[Home](../README.md) · [Paper experiment guide](../examples/papers/README.md#animate-a-completed-run)
+[Home](../README.md) · [Paper experiment guide](../examples/papers/README.md#4-animate-the-trajectories)
 
 These GIFs replay the previously saved, validated moderate-grid demo trajectories
 recorded on 2026-10-25. They use the paper models and the public experiment

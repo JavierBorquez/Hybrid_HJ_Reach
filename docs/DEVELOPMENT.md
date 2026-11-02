@@ -51,4 +51,4 @@ source path/environment before sharing it.
 A public release still needs an explicit license and upstream attribution
 review. The larger reference experiments and the remaining RSS rollout/figure
 workflows also need further validation or implementation; see the
-[paper status table](../examples/papers/README.md#what-is-reproduced).
+[paper experiment guide](../examples/papers/README.md).

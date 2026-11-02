@@ -41,7 +41,7 @@ JAX_PLATFORMS=cuda JAX_ENABLE_X64=true XLA_PYTHON_CLIENT_PREALLOCATE=false \
 
 Using `JAX_PLATFORMS=cuda` makes a missing CUDA backend an error. For a deliberate
 CPU run, use `JAX_PLATFORMS=cpu`. Paper demo grids benefit from a GPU; begin with
-the [small paper workflow](../examples/papers/README.md#1-check-the-workflow-on-cpu).
+the [small value-function solve](../examples/papers/README.md#1-compute-the-value-function).
 
 ## Common problems
 
@@ -54,7 +54,7 @@ the [small paper workflow](../examples/papers/README.md#1-check-the-workflow-on-
 | `MemoryError` mentioning an XLA estimate | Start with `--preset smoke` or `demo`. The paper scripts' `--memory-gib` option changes an execution-estimate budget; it does not increase available device memory. |
 | A short reach-avoid paper run ends at `deadline` | The `smoke` preset has a short horizon. Use `demo` for the documented goal-reaching experiment. |
 | A result cannot be loaded after an interrupted solve | A completed run needs `metadata.json` in its value directory. Partial streamed runs retain `progress.json`; automatic restart is not implemented. |
-| A validator cannot find outputs | Match the solve's case, `--preset` and `--output`. Read the [paper guide](../examples/papers/README.md#4-replay-and-check-the-trajectories). |
+| A validator cannot find outputs | Match the solve's case, `--preset` and `--output`. Read the [paper guide](../examples/papers/README.md#3-use-the-values-as-feedback-or-a-safety-filter). |
 
 ## Working inside the enclosing research checkout
 

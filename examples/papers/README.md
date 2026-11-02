@@ -162,10 +162,17 @@ JAX_PLATFORMS=cpu JAX_ENABLE_X64=true \
 
 Replace the case in all three commands to run any other IJRR example:
 
-- **Reach-avoid:** choose continuous inputs and available mode switches using
-  the value function to reach the goal without collision.
-- **Avoid:** apply the nominal policy when safe; otherwise use the safety
-  feedback. The script draws both nominal and filtered trajectories.
+**Safety filtering (`jump_avoid`):** apply the nominal policy when safe;
+otherwise use the safety feedback. The filtered jumper clears the pillars;
+the dashed nominal trajectory collides.
+
+![Jumper safety filtering: filtered and nominal trajectories](../../docs/images/paper_jumper_filter.gif)
+
+**Reach-avoid (`satellite_reach_avoid`):** choose continuous inputs and available
+mode switches using the value function to reach the goal without collision.
+Both spacecraft starts reach the target around the obstacles.
+
+![Spacecraft reach-avoid trajectories from two initial conditions](../../docs/images/paper_satellite_reach_avoid.gif)
 
 The [model adapters](../../src/hybrid_reach/examples/adapters.py) build the
 controllers and integrate the physical dynamics. Edit `Scenario.nominal()` in

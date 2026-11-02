@@ -69,7 +69,7 @@ Open `outputs/falling_piece/reach_avoid/policy.gif`. Use a fresh `--output`
 directory for reruns. The command also saves the value history, trajectories
 and summary.
 
-![Reach-avoid feedback: A and B inside the BRAT reach the clear target columns; C outside it misses](../docs/images/falling_piece_reach_avoid_policy.gif)
+![Reach-avoid feedback: A and B inside the BRAT reach the clear target columns; C outside it misses](../docs/images/falling_piece_brat_policy.gif)
 
 | Start | Expected behavior |
 |---|---|

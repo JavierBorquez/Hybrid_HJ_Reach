@@ -91,7 +91,7 @@ for reruns. The command also saves the value history, trajectories and summary.
 | Start | Expected behavior |
 |---|---|
 | A: outside BRT steer, `(-1.7,6.6)` | Steers into a gap; finishes safely |
-| B: outside BRT aligned, `(1.3,5.4)` | Starts in a clear column; finishes safely |
+| B: outside BRT aligned, `(1.3,4.2)` | Starts in a clear column; finishes safely |
 | C: inside BRT guaranteed fail, `(-1.9,4.2)` | Too little steering time; collides |
 
 The GIF shows the initial-horizon avoid BRT in red and the safe set in green.

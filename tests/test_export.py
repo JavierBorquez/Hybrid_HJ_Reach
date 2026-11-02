@@ -16,7 +16,7 @@ def test_export_excludes_outputs_and_private_artifacts(tmp_path):
     manifest = json.loads((destination/"EXPORT_MANIFEST.json").read_text())
     assert "src/hybrid_reach/solver.py" in manifest["sha256"]
     assert "tutorials/falling_piece.py" in manifest["sha256"]
-    assert "docs/images/falling_piece_reach_avoid_policy.gif" in manifest["sha256"]
+    assert "docs/images/falling_piece_brat_policy.gif" in manifest["sha256"]
     assert "AGENTS.md" in manifest["sha256"]
     for name, digest in manifest["sha256"].items():
         path = Path(name)

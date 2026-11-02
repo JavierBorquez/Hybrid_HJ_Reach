@@ -15,7 +15,7 @@ from hybrid_reach.examples.falling_piece import (
 
 def rollouts(problem, events, result, p):
     if problem.kind == "avoid":
-        starts = {"A": [-1.7, 6.6], "B": [1.3, 5.4], "C (too late)": [-1.9, 4.2]}
+        starts = {"A": [-1.7, 6.6], "B": [1.3, 4.2], "C (too late)": [-1.9, 4.2]}
         hlrf = AvoidFilter(problem, result, margin=.12)
 
         def safety_feedback(x, q, tau):

@@ -99,21 +99,22 @@ x = coordinates[0]
 fixed = tuple(int(np.argmin(abs(axis))) for axis in result.coordinates[2:])
 fig, axes = plt.subplots(1, len(result.mode_names), squeeze=False,
                          figsize=(5*len(result.mode_names), 4))
-color = 'salmon' if result.kind == 'avoid' else 'palegreen'
+color = '#f7d9d6' if result.kind == 'avoid' else '#d5eddf'
+outside = '#d5eddf' if result.kind == 'avoid' else '#f0f1f3'
 for q, ax in enumerate(axes[0]):
     if len(coordinates) == 1:
         field = result.values[-1, q]
         ax.plot(x, field)
-        ax.axhline(0., color='black')
+        ax.axhline(0., color='#263b50')
         ax.fill_between(x, field, 0., where=field <= 0, color=color, interpolate=True)
         ax.set_ylabel('Value V')
     else:
         y = coordinates[1]
         field = result.values[(-1, q, slice(None), slice(None), *fixed)]
         ax.contourf(x, y, (field <= 0).T, levels=[-.5, .5, 1.5],
-                    colors=['white', color])
+                    colors=[outside, color])
         if field.min() < 0 < field.max():
-            ax.contour(x, y, field.T, levels=[0.], colors='black')
+            ax.contour(x, y, field.T, levels=[0.], colors='#263b50')
         ax.set_ylabel('y / height [m]')
     ax.set(title=result.mode_names[q], xlabel='x [m]')
 tube = 'BRAT' if result.kind == 'reach_avoid' else 'BRT'
@@ -128,8 +129,9 @@ or timer/clock phases. Dog1D shades the part of the curve inside the BRT; the
 other cases shade the BRT/BRAT in the position plane. A short `smoke` horizon
 may show only a small part of the tube.
 
-The saved spacecraft reach-avoid demo gives these BRAT slices at 780 s, with
-velocities nearest zero and clock phase zero. Green marks `V <= 0`:
+These slices use the saved finer-grid spacecraft result (`51×41×15×15×11`)
+at 780 s, with velocities nearest zero and clock phase zero. Pale green marks
+the BRAT (`V <= 0`); red marks failure and dark green marks the goal:
 
 ![Spacecraft BRAT position slices for idle, thrust and cooldown at a 780-second horizon](../../docs/images/paper_satellite_brat_slices.png)
 

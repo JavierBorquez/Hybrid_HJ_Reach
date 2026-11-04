@@ -27,7 +27,7 @@ JAX_PLATFORMS=cpu JAX_ENABLE_X64=true \
 Each saves the initial and final value fields in
 `outputs/papers/<case>_smoke/`. `smoke` uses a small grid; high-dimensional cases
 also use short horizons. To compute the full-horizon tube on a larger grid,
-use `reference`, for example with [CUDA JAX](../../docs/SETUP.md#gpu-execution):
+use `reference`, for example with [CUDA JAX](../../docs/SETUP.md#gpu-setup):
 
 ```bash
 JAX_PLATFORMS=cuda JAX_ENABLE_X64=true XLA_PYTHON_CLIENT_PREALLOCATE=false \
@@ -39,13 +39,13 @@ an example from either paper.
 
 | Paper | Case | Model called by `run.py` | Task | Reference horizon |
 |---|---|---|---|---|
-| RSS | `dog_absorbing`, `dog_recoverable` | [`dog1d.py`](../../src/hybrid_reach/examples/dog1d.py) | Reach the other side of a table | 3 s |
-| RSS | `aircraft_fixed`, `aircraft_optimal` | [`aircoll3d.py`](../../src/hybrid_reach/examples/aircoll3d.py) | Avoid aircraft collision | 5 s |
-| RSS | `jump_reach` | [`jump4d.py`](../../src/hybrid_reach/examples/jump4d.py) | Reach a platform | 1 s |
-| IJRR | `jump_avoid` | [`jump_filter.py`](../../src/hybrid_reach/examples/jump_filter.py) | Avoid the floor and pillars | 4 s |
-| IJRR | `jump_reach_avoid` | [`jump_reach_avoid.py`](../../src/hybrid_reach/examples/jump_reach_avoid.py) | Reach a target beyond the pillars | 2 s |
-| IJRR | `satellite_avoid` | [`satellite.py`](../../src/hybrid_reach/examples/satellite.py) | Avoid obstacles and the lower boundary | 1200 s |
-| IJRR | `satellite_reach_avoid` | [`satellite_reach_avoid.py`](../../src/hybrid_reach/examples/satellite_reach_avoid.py) | Reach a target around obstacles | 780 s |
+| RSS | `dog_absorbing`, `dog_recoverable` | [`dog1d.py`](../../hybrid_reach/examples/dog1d.py) | Reach the other side of a table | 3 s |
+| RSS | `aircraft_fixed`, `aircraft_optimal` | [`aircoll3d.py`](../../hybrid_reach/examples/aircoll3d.py) | Avoid aircraft collision | 5 s |
+| RSS | `jump_reach` | [`jump4d.py`](../../hybrid_reach/examples/jump4d.py) | Reach a platform | 1 s |
+| IJRR | `jump_avoid` | [`jump_filter.py`](../../hybrid_reach/examples/jump_filter.py) | Avoid the floor and pillars | 4 s |
+| IJRR | `jump_reach_avoid` | [`jump_reach_avoid.py`](../../hybrid_reach/examples/jump_reach_avoid.py) | Reach a target beyond the pillars | 2 s |
+| IJRR | `satellite_avoid` | [`satellite.py`](../../hybrid_reach/examples/satellite.py) | Avoid obstacles and the lower boundary | 1200 s |
+| IJRR | `satellite_reach_avoid` | [`satellite_reach_avoid.py`](../../hybrid_reach/examples/satellite_reach_avoid.py) | Reach a target around obstacles | 780 s |
 
 Inside `run.py`, `make_case()` calls the corresponding module's `make_problem()`.
 That supplies the dynamics, grid, guards, resets and sets. The script wraps these
@@ -181,7 +181,7 @@ Both spacecraft starts reach the target around the obstacles.
 
 ![Spacecraft reach-avoid trajectories from two initial conditions](../../docs/images/paper_satellite_reach_avoid.gif)
 
-The [model adapters](../../src/hybrid_reach/examples/adapters.py) build the
+The [model adapters](../../hybrid_reach/examples/adapters.py) build the
 controllers and integrate the physical dynamics. Edit `Scenario.nominal()` in
 [`scenarios.py`](scenarios.py) to filter your own admissible nominal policy.
 The safety filter is available for avoid only.
@@ -194,8 +194,8 @@ Use the same case, preset and `--output` directory for all three commands.
 
 These are finite-grid results, and exact paper-figure reproduction is incomplete.
 The recorded demo trajectories pass independent checks, but the jumper avoid
-run has tight clearance. See the [validation record](../../docs/VALIDATION.md)
-for measured outcomes and grids. Short smoke runs need not reach the goal.
+run has only about 0.000508 m of clearance on its moderate grid. Short smoke
+runs need not reach the goal.
 
 ## 4. Animate the trajectories
 

@@ -7,3 +7,12 @@ build/
 dist/
 outputs/
 /tools/
+/tests/
+/AGENTS.md
+/CHANGELOG.md
+/pyproject.toml
+/MANIFEST.in
+/EXPORT_MANIFEST.json
+/docs/DEVELOPMENT.md
+/docs/VALIDATION.md
+/docs/PAPER_ANIMATIONS.md

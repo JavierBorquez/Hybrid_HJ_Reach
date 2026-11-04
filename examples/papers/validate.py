@@ -2,6 +2,11 @@
 import argparse
 import json
 from pathlib import Path
+import sys
+
+# Prefer the code in this clone when running the script directly.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import numpy as np
 from scipy.integrate import solve_ivp
 from hybrid_reach.geometry import clearance_bound

@@ -30,7 +30,7 @@ switches. This is a **hybrid system** because the continuous motion changes
 when the discrete mode changes.
 
 The complete runnable model is
-[`src/hybrid_reach/examples/falling_piece.py`](../src/hybrid_reach/examples/falling_piece.py).
+[`hybrid_reach/examples/falling_piece.py`](../hybrid_reach/examples/falling_piece.py).
 The snippets below explain the core parts.
 
 ## 2. Code the continuous dynamics
@@ -169,7 +169,7 @@ use this shared grid internally; plots show each field only in its physical band
 ## 6. Continue with the tasks
 
 You now have dynamics, an optimizer, forced transitions, event surfaces and a
-grid. [`make_system()`](../src/hybrid_reach/examples/falling_piece.py) assembles
+grid. [`make_system()`](../hybrid_reach/examples/falling_piece.py) assembles
 them for the runnable lesson. Next we add the goal and failure geometry:
 
 1. [Reach](REACH.md): align with a small target, compute its BRT, then follow the gradient policy.

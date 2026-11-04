@@ -5,6 +5,11 @@ results or their original solver/reset conventions are reproduced unchanged.
 """
 import argparse
 from pathlib import Path
+import sys
+
+# Prefer the code in this clone when running the script directly.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import numpy as np
 from hybrid_reach import Problem, solve
 from hybrid_reach.examples import dog1d, aircoll3d, jump4d, jump_filter

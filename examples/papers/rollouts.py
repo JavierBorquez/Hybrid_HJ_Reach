@@ -3,6 +3,11 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import sys
+
+# Prefer the code in this clone when running the script directly.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import numpy as np
 from hybrid_reach import Result, solve_streamed
 from hybrid_reach.runtime import GpuMemoryMonitor

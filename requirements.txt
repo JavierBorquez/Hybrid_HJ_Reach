@@ -1,0 +1,7 @@
+# Tested with Python 3.10. GPU runs also need a matching CUDA-enabled JAX build.
+hj-reachability==0.7.0
+jax==0.6.2
+numpy==2.2.6
+scipy==1.15.3
+matplotlib==3.10.9
+pillow==12.3.0

@@ -5,9 +5,9 @@ both. A hybrid system combines continuous motion with discrete mode changes, bel
 a jumping robot that switches between stance and flight, and a spacecraft that switches
 between idle, thrust and cooldown.
 
-This Python package solves Hamilton–Jacobi reachability problems on CPU or GPU
-using `hj_reachability` and JAX. It includes feedback controllers, an avoid-only
-hybrid least-restrictive safety filter, and examples from the asociated RSS and IJRR
+This code solves Hamilton–Jacobi reachability problems on CPU or GPU
+using [hj_reachability](https://github.com/StanfordASL/hj_reachability) and JAX. It includes feedback controllers, an avoid-only
+hybrid least-restrictive safety filter, and examples from the associated RSS and IJRR
 hybrid reachability papers which dig deeper into the theory behind this method.
 
 | Jumping robot · safety filtering | Spacecraft · reach-avoid |
@@ -26,13 +26,15 @@ collides. The spacecraft uses goal-seeking reach-avoid feedback from two starts.
 
 ## Install and run your first example
 
-Use Python 3.10 or newer. From the repository root, create an environment and
-install the package with its plotting and test dependencies:
+Clone the repository, create an environment and install the dependencies.
+The commands below were tested with Python 3.10:
 
 ```bash
+git clone https://github.com/JavierBorquez/Hybrid_HJ_Reach.git
+cd Hybrid_HJ_Reach
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install -e '.[examples,test]'
+python -m pip install -r requirements.txt
 JAX_PLATFORMS=cpu JAX_ENABLE_X64=true python tutorials/falling_piece.py
 ```
 
